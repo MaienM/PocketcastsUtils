@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name         Pocketcasts Utils
-// @namespace    http://waxd.nl
+// @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7/raw/25712be7ef9e7008549b4e0aa9dff7bb3871f1fc/gistfile1.js
+// @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/25712be7ef9e7008549b4e0aa9dff7bb3871f1fc/gistfile1.js
 // @version      0.1
 // @description  Some utilities for pocketcasts
 // @author       MaienM
