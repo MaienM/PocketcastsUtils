@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7/raw/25712be7ef9e7008549b4e0aa9dff7bb3871f1fc/gistfile1.js
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/25712be7ef9e7008549b4e0aa9dff7bb3871f1fc/gistfile1.js
-// @version      0.1
+// @version      0.2
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -17,22 +17,64 @@ if (MutationObserver == null) {
 
 $(function() {
     /*
- * Add a show-all button next to the show-more button.
- */
+     * The basic show-more functionality.
+     * 
+     * Returns true if the action was successful.
+     */
+    function doShowMore() {
+        // Get the show more button.
+        var btnShowMore = $('div.show_more:not(.show_all)');
+        
+        // If the button is visible, click it and assume that is successful.
+        if ($(btnShowMore).is(':visible')) {
+            $(btnShowMore).click();
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    
+    /*
+     * Add a swap-order button.
+     */
+       
+    // Function to swap the order.
+    var orderSwapped = false;
+    function doSwapOrder() {
+        // Get the div containing the episodes/headers.
+        var container = $('#podcast_show .episodes_list > div:first');
+        
+        // Get the stuff that should be swapped.
+        var toSwap = $(container).find('> *');
+        
+        // Remove it from the container.
+        $(toSwap).remove();
+        
+        // Add them back in reverse order.
+        $(toSwap).each(function() {
+            $(container).prepend(this);
+        });
+        
+        // Save the state.
+        orderSwapped = !orderSwapped;
+    }
     
     // Create the button.
-    var showAll = $('<div class="show_all show_more">Show all</div>');
+    var btnSwapOrder = $('<div class="swap_order show_more">Swap order</div>');
+	$(btnSwapOrder).on('click', doSwapOrder);
     
-    // Handle it's click.
-    $(showAll).on('click', function() {
-        var showMore = $('div.show_more:not(.show_all)');
-        
-        // Every time the episodes list changes, click show more if there is still more to show.
+	/*
+ 	 * Add a show-all button next to the show-more button.
+ 	 */
+    
+    // Function to show all.
+    function doShowAll() {
+        // Every time the episodes list changes, check whether there is more still to show.
         var listObserver = new MutationObserver(function(mutations, observer) {
-            if ($(showMore).is(':visible')) {
-                $(showMore).click();
-            } else {
-            	listObserver.disconnect();
+            if (!doShowMore()) {
+                // Stop listening to this event.
+                listObserver.disconnect();
             }
         });
         listObserver.observe($('#podcast_show div.episodes_list')[0], {
@@ -40,26 +82,34 @@ $(function() {
             childList: true,
         });
         
-        // Click it once to start.
-        $(showMore).click();
-    });
+        // Start showing more.
+        doShowMore();
+    }
     
-    // When needed, add it to the page.
+    // Create the button.
+    var btnShowAll = $('<div class="show_all show_more">Show all</div>');
+    $(btnShowAll).on('click', doShowAll);
+    
+    /**
+     * Add the buttons to the page when needed.
+     */
     var pageObserver = new MutationObserver(function(mutations, observer) {
-        var showMore = $('.show_more');
-        if ($(showMore).length > 0 && $('.show_all').length == 0) {
-            // Add the button.
-            $(showMore).after(showAll);
+        // Get the show more button.
+        var btnShowMore = $('.show_more');
+        if ($(btnShowMore).length > 0 && $('.show_all').length == 0) {
+            // Add the buttons.
+            $(btnShowMore).after(btnSwapOrder);
+            $(btnShowMore).after(btnShowAll);
             
             // When the more button's visiblity changes, update the visibility of the all button as well.
             var showObserver = new MutationObserver(function(mutations, observer) {
-                if ($(showMore).is(':visible')) {
-                    $(showAll).show();
+                if ($(btnShowMore).is(':visible')) {
+                    $(btnShowAll).show();
                 } else {
-                    $(showAll).hide();
+                    $(btnShowAll).hide();
                 }
             });
-            showObserver.observe(showMore[0], {
+            showObserver.observe(btnShowMore[0], {
                 attributes: true,
             });
         }
