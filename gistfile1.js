@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.0.1
+// @version      1.1.0
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -84,19 +84,19 @@ $(function() {
     $('h6.podcast_search').css('margin', '0');
     
     /**
-     * The basic show-more functionality.
+     * The basic load-more functionality.
      * 
      * Returns true if the action was successful.
      */
-    function doShowMore(callback) {
+    function doLoadMore(callback) {
         doOrderRegular();
         
-        // Get the show more button.
-        var btnShowMore = $('div.show_more:not(.show_all)');
+        // Get the load more button.
+        var btnLoadMore = $('div.show_more:not(.show_all)');
         
         // If the button is visible, click it and assume that is successful.
-        if ($(btnShowMore).is(':visible')) {
-            $(btnShowMore).click();
+        if ($(btnLoadMore).is(':visible')) {
+            $(btnLoadMore).click();
             return true;
         }
         else {
@@ -107,6 +107,31 @@ $(function() {
         
         // Callback, if given.
         doCallback(callback);
+    }
+    
+	/**
+ 	 * Load-all functionality.
+ 	 */
+    function doLoadAll(callback) {
+        // Every time the episodes list changes, check whether there is more still to load.
+        var listObserver = new MutationObserver(function(mutations, observer) {
+            if (!doLoadMore()) {
+                // Stop listening to this event.
+                listObserver.disconnect();
+        
+                // Callback, if given.
+                doCallback(callback);
+            }
+        });
+        listObserver.observe($('#podcast_show div.episodes_list')[0], {
+            subtree: true,
+            childList: true,
+        });
+        
+        // Start loading more.
+        if (!doLoadMore()) {
+            doCallback(callback);
+        }
     }
     
     /**
@@ -166,29 +191,6 @@ $(function() {
         doCallback(callback);
     }
     
-	/**
- 	 * Show-all functionality.
- 	 */
-    function doShowAll(callback) {
-        // Every time the episodes list changes, check whether there is more still to show.
-        var listObserver = new MutationObserver(function(mutations, observer) {
-            if (!doShowMore()) {
-                // Stop listening to this event.
-                listObserver.disconnect();
-        
-                // Callback, if given.
-                doCallback(callback);
-            }
-        });
-        listObserver.observe($('#podcast_show div.episodes_list')[0], {
-            subtree: true,
-            childList: true,
-        });
-        
-        // Start showing more.
-        doShowMore();
-    }
-    
     /**
      * Show/hide seen episodes.
      */
@@ -209,7 +211,7 @@ $(function() {
      * Sane mode.
      */
     function doSaneMode(callback) {
-        doShowAll(function() {    
+        doLoadAll(function() {    
         	doOrderInverse();
             doHideSeen();
             
@@ -226,19 +228,24 @@ $(function() {
     
     // Create the menu elements.
     var iconSaneMode = createIcon('user', 'Sane mode', doSaneMode);
-    var iconShowMore = createIcon('tag', 'Show more', doShowMore);
-    var iconShowAll = createIcon('tags', 'Show all', doShowAll);
+    var iconLoadMore = createIcon('tag', 'Load more', doLoadMore);
+    var iconLoadAll = createIcon('tags', 'Load all', doLoadAll);
+    var dropShow = createDropdown('eye-open', 'Show/hide', [
+        ['eye-open', 'Show seen episodes', doShowSeen],
+        ['eye-close', 'Hide seen episodes', doHideSeen]
+    ]);
     var dropOrder = createDropdown('sort', 'Order', [
     	['sort', 'Swap order', doOrderSwap],
         ['sort-by-order', 'Order newest -> oldest', doOrderRegular],
-        ['sort-by-order-alt', 'Order oldest -> newest', doOrderInverse],
+        ['sort-by-order-alt', 'Order oldest -> newest', doOrderInverse]
     ]);//*/
         
     // Add all elements to the proper location.
     $('div.header').after(menu);
     $(menu).append(iconSaneMode);
-    $(menu).append(iconShowMore);
-    $(menu).append(iconShowAll);
+    $(menu).append(iconLoadMore);
+    $(menu).append(iconLoadAll);
+    $(menu).append(dropShow);
     $(menu).append(dropOrder);
         
     /**
@@ -255,35 +262,16 @@ $(function() {
     // When the more button's visiblity changes, update the visibility of the associated buttons as well.
     var prevPodcastID = null;
     var podcastID = null;
-    var showObserver = new MutationObserver(function(mutations, observer) {
-        setState($(mutations[0].target).is(':visible'), [iconShowMore, iconShowAll]);
-    });
     var pageObserver = new MutationObserver(function(mutations, observer) {
-        // Determine the current page.
+        // Determine the current state.
         prevPodcastID = podcastID;
         podcastID = $('#podcast_header_text h1').text();
         var isPodcastPage = $('#podcast_show').is(':visible');
+        var canLoadMore = $('.show_more').is(':visible');
 
-        // Set the order buttons.
-        setState(isPodcastPage, [iconSaneMode, iconShowMore, iconShowAll, dropOrder]);
-        
-        // Watch the show button.
-        if (isPodcastPage) {
-            // Set current state.
-            var btnShowMore = $('.show_more');
-            setState($(btnShowMore).is(':visible'), [iconShowMore, iconShowAll]);
-
-            // Watch.
-            if ($(btnShowMore).is(':visible')) {
-                showObserver.observe(btnShowMore[0], {
-                    attributes: true,
-                });	
-            } else {
-                showObserver.disconnect();
-            }
-        } else {
-            showObserver.disconnect();
-        }
+        // Set the button states.
+        setState(isPodcastPage, [iconSaneMode, dropShow, dropOrder]);
+        setState(isPodcastPage && canLoadMore, [iconLoadMore, iconLoadAll]);
         
         // If a switch between podcasts is made, reset the order flag.
         if (podcastID != null && podcastID != prevPodcastID) {
