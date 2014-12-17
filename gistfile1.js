@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.0
+// @version      1.0.1
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -265,7 +265,7 @@ $(function() {
         var isPodcastPage = $('#podcast_show').is(':visible');
 
         // Set the order buttons.
-        setState(isPodcastPage, [iconShowMore, iconShowAll, dropOrder]);
+        setState(isPodcastPage, [iconSaneMode, iconShowMore, iconShowAll, dropOrder]);
         
         // Watch the show button.
         if (isPodcastPage) {
