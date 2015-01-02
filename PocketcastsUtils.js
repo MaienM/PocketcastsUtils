@@ -2,11 +2,12 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.1.0
+// @version      1.1.1
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
 // @grant        none
+// @require      https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js
 // ==/UserScript==
 
 // Get the MutationObserver class for this browser.
@@ -30,11 +31,11 @@ function createDropdown(cls, description, items) {
     $(icon).css('float', 'left');
     $(btn).find('span.caret').css('float', 'right').css('margin-top', '0.5em');
     $(menu).css('width', '100%').css('margin-top', '-1px');
-    $(items).each(function() {
+    _.each(items, function(item) {
         // Get the data.
-        var icls = this[0];
-        var idescription = this[1];
-        var icallback = this[2];
+        var icls = item[0];
+        var idescription = item[1];
+        var icallback = item[2];
         
         // Build the list item.
         var li = $('<li><a href="#"><span class="glyphicon"></span></a></li>');
@@ -157,8 +158,8 @@ $(function() {
             
             // Get the episodes.
             var episodes = $(year).find('.episode_row');
-            $(episodes).each(function() {
-                $(year).prepend(this);
+            $($(episodes).get().reverse()).each(function() {
+                $(year).append(this);
             });
         });
                       
@@ -194,14 +195,18 @@ $(function() {
     /**
      * Show/hide seen episodes.
      */
-    function doHideSeen(callback) {
-        $('.played_status_3').hide();
+    var STATUS_UNWATCHED = '.played_status_1';
+    var STATUS_PARTIAL = '.played_status_2';
+    var STATUS_WATCHED = '.played_status_3';
+    function doHide(elems, callback) {
+        $(elems).hide();
+        $(elems).last().show();
         
         // Callback, if given.
         doCallback(callback);
     }
-    function doShowSeen(callback) {
-        $('.played_status_3').show();
+    function doShow(elems, callback) {
+        $(elems).show();
         
         // Callback, if given.
         doCallback(callback);
@@ -213,7 +218,7 @@ $(function() {
     function doSaneMode(callback) {
         doLoadAll(function() {    
         	doOrderInverse();
-            doHideSeen();
+            doHide(STATUS_WATCHED);
             
             // Callback, if given.
             doCallback(callback);
@@ -231,15 +236,14 @@ $(function() {
     var iconLoadMore = createIcon('tag', 'Load more', doLoadMore);
     var iconLoadAll = createIcon('tags', 'Load all', doLoadAll);
     var dropShow = createDropdown('eye-open', 'Show/hide', [
-        ['eye-open', 'Show seen episodes', doShowSeen],
-        ['eye-close', 'Hide seen episodes', doHideSeen]
+        ['eye-open', 'Show seen episodes', _.partial(doShow, STATUS_WATCHED)],
+        ['eye-close', 'Hide seen episodes', _.partial(doHide, STATUS_WATCHED)]
     ]);
     var dropOrder = createDropdown('sort', 'Order', [
-    	['sort', 'Swap order', doOrderSwap],
         ['sort-by-order', 'Order newest -> oldest', doOrderRegular],
         ['sort-by-order-alt', 'Order oldest -> newest', doOrderInverse]
     ]);//*/
-        
+	
     // Add all elements to the proper location.
     $('div.header').after(menu);
     $(menu).append(iconSaneMode);
@@ -247,7 +251,7 @@ $(function() {
     $(menu).append(iconLoadAll);
     $(menu).append(dropShow);
     $(menu).append(dropOrder);
-        
+    
     /**
      * Watch the page for changes to enable/disable certain buttons at certain moments.
      */
