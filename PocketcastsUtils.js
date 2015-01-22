@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.1.1
+// @version      1.1.2
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -64,6 +64,11 @@ function createIcon(cls, description, callback) {
     return btn;
 }
 
+// Multiline Function String - Nate Ferrero - Public Domain - http://stackoverflow.com/a/14496573
+function heredoc(f) {
+    return f.toString().match(/\/\*\s*([\s\S]*?)\s*\*\//m)[1];
+}
+
 // Helper method to call a callback, if given.
 function doCallback(callback) {
     if (typeof callback === 'function') {
@@ -80,9 +85,22 @@ $(function() {
     $('head').append($('<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js" type="text/javascript">'));
     
     // Add some custom tweaks to fix minor issues caused by bootstrap.
-    $('body').css('font-family', '"proxima-nova","Helvetica Neue",Helvetica,Arial,sans-serif');
-    $('h1').css('font-size', '24px');
-    $('h6.podcast_search').css('margin', '0');
+    var style = $('<style></style>');
+    $(style).html(heredoc(function(){/*
+    	body {
+        	font-family: "proxima-nova","Helvetica Neue",Helvetica,Arial,sans-serif;
+        }
+        h1 {
+        	font-size: 24px;
+        }
+        h6.podcast_search {
+        	margin: 0;
+        }
+        .episodes_list h6 {
+        	margin: 0;
+        }
+   */}));
+    $('head').append(style);
     
     /**
      * The basic load-more functionality.
