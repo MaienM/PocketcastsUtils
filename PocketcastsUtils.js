@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.1.2
+// @version      1.2.0
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -101,6 +101,12 @@ $(function() {
         }
    */}));
     $('head').append(style);
+    
+    /**
+     * Do nothing.
+     */
+    function noop() {
+    }
     
     /**
      * The basic load-more functionality.
@@ -213,7 +219,7 @@ $(function() {
     /**
      * Show/hide seen episodes.
      */
-    var STATUS_UNWATCHED = '.played_status_1';
+    var STATUS_UNWATCHED = '.played_status_0, .played_status_1';
     var STATUS_PARTIAL = '.played_status_2';
     var STATUS_WATCHED = '.played_status_3';
     function doHide(elems, callback) {
@@ -260,7 +266,15 @@ $(function() {
     var dropOrder = createDropdown('sort', 'Order', [
         ['sort-by-order', 'Order newest -> oldest', doOrderRegular],
         ['sort-by-order-alt', 'Order oldest -> newest', doOrderInverse]
+    ]);
+    var dropStats = createDropdown('info-sign', 'Information', [
+        ['stats-total', 'Total episodes:', noop],
+        ['stats-watched', 'Watched:', noop],
+        ['stats-unwatched', 'Unwatched:', noop],
     ]);//*/
+    var statsTotal = $(dropStats).find('.glyphicon-stats-total');
+    var statsWatched = $(dropStats).find('.glyphicon-stats-watched');
+    var statsUnwatched = $(dropStats).find('.glyphicon-stats-unwatched');
 	
     // Add all elements to the proper location.
     $('div.header').after(menu);
@@ -269,9 +283,10 @@ $(function() {
     $(menu).append(iconLoadAll);
     $(menu).append(dropShow);
     $(menu).append(dropOrder);
+    $(menu).append(dropStats);
     
     /**
-     * Watch the page for changes to enable/disable certain buttons at certain moments.
+     * Update the state of the menu items.
      */
     function setState(state, elems) {
         var btns = $(elems).map(function() { return this.toArray(); }).find('button').addBack().filter('button');
@@ -281,7 +296,22 @@ $(function() {
             $(btns).addClass('disabled');
         }
     }
-    // When the more button's visiblity changes, update the visibility of the associated buttons as well.
+        
+    /**
+     * Update stats in the menu.
+     */
+    function setStat(elem, number) {
+        var statElem = $(elem).parent().children().last();
+        if (!$(statElem).is('.pull-right')) {
+            statElem = $('<span class="pull-right"></span>');
+         	$(elem).parent().append(statElem);
+        }
+        $(statElem).text(number)
+    }
+    
+    /**
+     * Watch the page for changes to enable/disable certain buttons at certain moments.
+     */
     var prevPodcastID = null;
     var podcastID = null;
     var pageObserver = new MutationObserver(function(mutations, observer) {
@@ -294,6 +324,11 @@ $(function() {
         // Set the button states.
         setState(isPodcastPage, [iconSaneMode, dropShow, dropOrder]);
         setState(isPodcastPage && canLoadMore, [iconLoadMore, iconLoadAll]);
+        
+        // Set the stats.
+        setStat(statsTotal, $('.episode_row').length);
+    	setStat(statsWatched, $(STATUS_WATCHED).length);
+    	setStat(statsUnwatched, $(STATUS_UNWATCHED).length);
         
         // If a switch between podcasts is made, reset the order flag.
         if (podcastID != null && podcastID != prevPodcastID) {
