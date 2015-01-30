@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.2.0
+// @version      1.2.1
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -10,73 +10,80 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js
 // ==/UserScript==
 
-// Get the MutationObserver class for this browser.
-var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-if (MutationObserver == null) {
-    console.error("Your piece of shit browser does not support MutationObserver.");
-}
-
-/**
- * Creating buttons/menus.
- */
-function createDropdown(cls, description, items) {
-    var group = $('<div class="btn-group" role="group"><button type="button" class="btn btn-default dropdown-togggle" data-toggle="dropdown" aria-expanded="false"><span class="glyphicon"></span><span class="caret"></span></button><ul class="dropdown-menu" role="menu"></ul></div>');
-    var btn = $(group).find('button');
-    var icon = $(btn).find('span.glyphicon');
-    var menu = $(group).find('ul');
-    $(btn).attr('aria-label', description);
-    $(btn).dropdown();
-    $(icon).addClass('glyphicon-' + cls);
-    $(icon).after(' ' + description + ' ');
-    $(icon).css('float', 'left');
-    $(btn).find('span.caret').css('float', 'right').css('margin-top', '0.5em');
-    $(menu).css('width', '100%').css('margin-top', '-1px');
-    _.each(items, function(item) {
-        // Get the data.
-        var icls = item[0];
-        var idescription = item[1];
-        var icallback = item[2];
-        
-        // Build the list item.
-        var li = $('<li><a href="#"><span class="glyphicon"></span></a></li>');
-        var a = $(li).find('a');
-        var span = $(li).find('span');
-        $(a).append(' ' + idescription);
-        $(span).addClass('glyphicon-' + icls);
-        $(li).on('click', function(e) {
-            e.preventDefault();
-            icallback();
-        });
-        $(menu).append(li);
-    });
-    return group;
-}
-function createIcon(cls, description, callback) {
-    var btn = $('<button type="button" class="btn btn-default"><span class="glyphicon" aria-hidden="true"></span></button>');
-    var icon = $(btn).find('span');
-    $(btn).attr('aria-label', description);
-    $(icon).addClass('glyphicon-' + cls);    
-    $(icon).after(' ' + description);
-    $(icon).css('float', 'left');
-    if (callback != undefined) {
-    	$(btn).on('click', callback);
-    }
-    return btn;
-}
-
-// Multiline Function String - Nate Ferrero - Public Domain - http://stackoverflow.com/a/14496573
-function heredoc(f) {
-    return f.toString().match(/\/\*\s*([\s\S]*?)\s*\*\//m)[1];
-}
-
-// Helper method to call a callback, if given.
-function doCallback(callback) {
-    if (typeof callback === 'function') {
-        callback();
-    }
-}
-
 $(function() {
+    // Get the MutationObserver class for this browser.
+    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+    if (MutationObserver == null) {
+        console.error("Your piece of shit browser does not support MutationObserver.");
+        return;
+    }
+    
+    /**
+     * Creating buttons/menus.
+     */
+    function createDropdown(cls, description, items) {
+        var group = $('<div class="btn-group" role="group"><button type="button" class="btn btn-default dropdown-togggle" data-toggle="dropdown" aria-expanded="false"><span class="glyphicon"></span><span class="caret"></span></button><ul class="dropdown-menu" role="menu"></ul></div>');
+        var btn = $(group).find('button');
+        var icon = $(btn).find('span.glyphicon');
+        var menu = $(group).find('ul');
+        $(btn).attr('aria-label', description);
+        $(btn).dropdown();
+        $(icon).addClass('glyphicon-' + cls);
+        $(icon).after(' ' + description + ' ');
+        $(icon).css('float', 'left');
+        $(btn).find('span.caret').css('float', 'right').css('margin-top', '0.5em');
+        $(menu).css('width', '100%').css('margin-top', '-1px');
+        _.each(items, function(item) {
+            // Get the data.
+            var icls = item[0];
+            var idescription = item[1];
+            var icallback = item[2];
+            
+            // Build the list item.
+            var li = $('<li><a href="#"><span class="glyphicon"></span></a></li>');
+            var a = $(li).find('a');
+            var span = $(li).find('span');
+            $(a).append(' ' + idescription);
+            $(span).addClass('glyphicon-' + icls);
+            $(li).on('click', function(e) {
+                e.preventDefault();
+                icallback();
+            });
+            $(menu).append(li);
+        });
+        return group;
+    }
+    function createIcon(cls, description, callback) {
+        var btn = $('<button type="button" class="btn btn-default"><span class="glyphicon" aria-hidden="true"></span></button>');
+        var icon = $(btn).find('span');
+        $(btn).attr('aria-label', description);
+        $(icon).addClass('glyphicon-' + cls);    
+        $(icon).after(' ' + description);
+        $(icon).css('float', 'left');
+        if (callback != undefined) {
+            $(btn).on('click', callback);
+        }
+        return btn;
+    }
+    function createStat(name, width) {
+        if (width == undefined) {
+            width = 'auto';
+        }
+        return '<stat id="stat-' + name + '" class="stat" style="width: ' + width + ';"></stat>';
+    }
+    
+    // Multiline Function String - Nate Ferrero - Public Domain - http://stackoverflow.com/a/14496573
+    function heredoc(f) {
+        return f.toString().match(/\/\*\s*([\s\S]*?)\s*\*\//m)[1];
+    }
+    
+    // Helper method to call a callback, if given.
+    function doCallback(callback) {
+        if (typeof callback === 'function') {
+            callback();
+        }
+    }
+
     /**
      * Styling.
      */
@@ -98,6 +105,14 @@ $(function() {
         }
         .episodes_list h6 {
         	margin: 0;
+        }
+        .stat {
+        	float: right;
+            text-align: right;
+        	padding: 0 2px;
+        }
+        .stat:first-child {
+        	padding-right: 0;
         }
    */}));
     $('head').append(style);
@@ -250,6 +265,33 @@ $(function() {
     }
     
     /**
+     * Parsing/formatting time.
+     */
+    function timeParse(text) {
+        var match = /(?:([0-9]+) hours?)?\s*(?:([0-9]+) minutes?)?/.exec(text);
+        var num = 0;
+        if (match[1] != undefined) {
+            num += (parseInt(match[1]) * 60);
+        }
+        if (match[2] != undefined) {
+            num += parseInt(match[2]);
+        }
+        return num
+    }
+    function timeFormat(num) {
+        var hours = Math.floor(num / 60);
+        var minutes = num % 60;
+        return hours + ':' + (minutes < 10 ? '0' : '') + minutes;
+    }
+    function timeCombine(elems) {
+        var sum = 0;
+        $(elems).find('.episode_time').each(function() {
+            sum += timeParse($(this).text());
+        });
+        return timeFormat(sum);
+    }
+    
+    /**
      * Create the menu.
      */
     var menu = $('<div class="btn-group-vertical actions"></div>');
@@ -268,13 +310,16 @@ $(function() {
         ['sort-by-order-alt', 'Order oldest -> newest', doOrderInverse]
     ]);
     var dropStats = createDropdown('info-sign', 'Information', [
-        ['stats-total', 'Total episodes:', noop],
-        ['stats-watched', 'Watched:', noop],
-        ['stats-unwatched', 'Unwatched:', noop],
+        ['', 'Total episodes:' + createStat('total-count', '40px') + createStat('total-time'), noop],
+        ['', 'Watched:' + createStat('watched-count', '40px') + createStat('watched-time'), noop],
+        ['', 'Unwatched:' + createStat('unwatched-count', '40px') + createStat('unwatched-time'), noop],
     ]);//*/
-    var statsTotal = $(dropStats).find('.glyphicon-stats-total');
-    var statsWatched = $(dropStats).find('.glyphicon-stats-watched');
-    var statsUnwatched = $(dropStats).find('.glyphicon-stats-unwatched');
+    var statTotalTime = $(dropStats).find('#stat-total-time');
+    var statTotalCount = $(dropStats).find('#stat-total-count');
+    var statWatchedTime = $(dropStats).find('#stat-watched-time');
+    var statWatchedCount = $(dropStats).find('#stat-watched-count');
+    var statUnwatchedTime = $(dropStats).find('#stat-unwatched-time');
+    var statUnwatchedCount = $(dropStats).find('#stat-unwatched-count');
 	
     // Add all elements to the proper location.
     $('div.header').after(menu);
@@ -295,19 +340,7 @@ $(function() {
         } else {
             $(btns).addClass('disabled');
         }
-    }
-        
-    /**
-     * Update stats in the menu.
-     */
-    function setStat(elem, number) {
-        var statElem = $(elem).parent().children().last();
-        if (!$(statElem).is('.pull-right')) {
-            statElem = $('<span class="pull-right"></span>');
-         	$(elem).parent().append(statElem);
-        }
-        $(statElem).text(number)
-    }
+    }    
     
     /**
      * Watch the page for changes to enable/disable certain buttons at certain moments.
@@ -326,9 +359,12 @@ $(function() {
         setState(isPodcastPage && canLoadMore, [iconLoadMore, iconLoadAll]);
         
         // Set the stats.
-        setStat(statsTotal, $('.episode_row').length);
-    	setStat(statsWatched, $(STATUS_WATCHED).length);
-    	setStat(statsUnwatched, $(STATUS_UNWATCHED).length);
+    	$(statTotalCount).text($('.episode_time').length);
+    	$(statWatchedCount).text($(STATUS_WATCHED).length);
+    	$(statUnwatchedCount).text($(STATUS_UNWATCHED).length);
+    	$(statTotalTime).text(timeCombine($('.episode_row')));
+    	$(statWatchedTime).text(timeCombine($(STATUS_WATCHED)));
+    	$(statUnwatchedTime).text(timeCombine($(STATUS_UNWATCHED)));
         
         // If a switch between podcasts is made, reset the order flag.
         if (podcastID != null && podcastID != prevPodcastID) {
