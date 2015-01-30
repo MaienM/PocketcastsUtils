@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.2.1
+// @version      1.2.2
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -70,6 +70,9 @@ $(function() {
             width = 'auto';
         }
         return '<stat id="stat-' + name + '" class="stat" style="width: ' + width + ';"></stat>';
+    }
+    function createEpisodeStats(name) {
+    	return createStat(name + '-count', '40px') + createStat(name + '-time');
     }
     
     // Multiline Function String - Nate Ferrero - Public Domain - http://stackoverflow.com/a/14496573
@@ -310,17 +313,11 @@ $(function() {
         ['sort-by-order-alt', 'Order oldest -> newest', doOrderInverse]
     ]);
     var dropStats = createDropdown('info-sign', 'Information', [
-        ['', 'Total episodes:' + createStat('total-count', '40px') + createStat('total-time'), noop],
-        ['', 'Watched:' + createStat('watched-count', '40px') + createStat('watched-time'), noop],
-        ['', 'Unwatched:' + createStat('unwatched-count', '40px') + createStat('unwatched-time'), noop],
+        ['', 'Total episodes:' + createEpisodeStats('total'), noop],
+        ['', 'Watched:' + createEpisodeStats('watched'), noop],
+        ['', 'Unwatched:' + createEpisodeStats('unwatched'), noop],
     ]);//*/
-    var statTotalTime = $(dropStats).find('#stat-total-time');
-    var statTotalCount = $(dropStats).find('#stat-total-count');
-    var statWatchedTime = $(dropStats).find('#stat-watched-time');
-    var statWatchedCount = $(dropStats).find('#stat-watched-count');
-    var statUnwatchedTime = $(dropStats).find('#stat-unwatched-time');
-    var statUnwatchedCount = $(dropStats).find('#stat-unwatched-count');
-	
+        
     // Add all elements to the proper location.
     $('div.header').after(menu);
     $(menu).append(iconSaneMode);
@@ -341,6 +338,14 @@ $(function() {
             $(btns).addClass('disabled');
         }
     }    
+        
+    /**
+     * Update the stats in the menu.
+     */
+    function setEpisodeStats(name, episodes) {
+    	$('#stat-' + name + '-count').text($(episodes).length);
+    	$('#stat-' + name + '-time').text(timeCombine($(episodes)));
+    }
     
     /**
      * Watch the page for changes to enable/disable certain buttons at certain moments.
@@ -359,12 +364,9 @@ $(function() {
         setState(isPodcastPage && canLoadMore, [iconLoadMore, iconLoadAll]);
         
         // Set the stats.
-    	$(statTotalCount).text($('.episode_time').length);
-    	$(statWatchedCount).text($(STATUS_WATCHED).length);
-    	$(statUnwatchedCount).text($(STATUS_UNWATCHED).length);
-    	$(statTotalTime).text(timeCombine($('.episode_row')));
-    	$(statWatchedTime).text(timeCombine($(STATUS_WATCHED)));
-    	$(statUnwatchedTime).text(timeCombine($(STATUS_UNWATCHED)));
+    	setEpisodeStats('total', $('.episode_time'));
+    	setEpisodeStats('watched', $(STATUS_WATCHED));
+    	setEpisodeStats('unwatched', $(STATUS_UNWATCHED));
         
         // If a switch between podcasts is made, reset the order flag.
         if (podcastID != null && podcastID != prevPodcastID) {
