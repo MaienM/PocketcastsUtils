@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.2.2
+// @version      1.2.3
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -270,6 +270,10 @@ $(function() {
     /**
      * Parsing/formatting time.
      */
+    var MINUTE = 1;
+    var HOUR = 60 * MINUTE;
+    var DAY = 24 * HOUR;
+    var WEEK = 7 * DAY;
     function timeParse(text) {
         var match = /(?:([0-9]+) hours?)?\s*(?:([0-9]+) minutes?)?/.exec(text);
         var num = 0;
@@ -281,17 +285,30 @@ $(function() {
         }
         return num
     }
-    function timeFormat(num) {
-        var hours = Math.floor(num / 60);
-        var minutes = num % 60;
+    function timeFormatShort(num) {
+        var hours = Math.floor(num / HOUR);
+        var minutes = num % HOUR;
         return hours + ':' + (minutes < 10 ? '0' : '') + minutes;
+    }
+    function timeFormatFull(num) {
+        var weeks = Math.floor(num / WEEK);
+        var days = Math.floor((num % WEEK) / DAY);
+        var hours = Math.floor((num % DAY) / HOUR);
+        var minutes = num % HOUR;
+        var parts = [
+        	weeks > 1 ? (weeks + ' weeks ') : (weeks > 0 ? (weeks + ' week ') : ''),
+            days > 1 ? (days + ' days ') : (days > 0 ? (days + ' day ') : ''),
+            hours > 1 ? (hours + ' hours ') : (hours > 0 ? (hours + ' hour ') : ''),
+            minutes > 1 ? (minutes + ' minutes ') : (minutes > 0 ? (minutes + ' minute ') : '')
+        ];
+        return _.filter(parts).join(' ');
     }
     function timeCombine(elems) {
         var sum = 0;
         $(elems).find('.episode_time').each(function() {
             sum += timeParse($(this).text());
         });
-        return timeFormat(sum);
+        return sum;
     }
     
     /**
@@ -344,7 +361,9 @@ $(function() {
      */
     function setEpisodeStats(name, episodes) {
     	$('#stat-' + name + '-count').text($(episodes).length);
-    	$('#stat-' + name + '-time').text(timeCombine($(episodes)));
+        var time = timeCombine($(episodes));
+    	$('#stat-' + name + '-time').text(timeFormatShort(time));
+        $('#stat-' + name + '-time').attr('title', timeFormatFull(time));
     }
     
     /**
