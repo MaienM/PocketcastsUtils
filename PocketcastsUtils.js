@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.4.1
+// @version      1.4.2
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -356,9 +356,11 @@ $(function() {
         	updateNextEpisode();
             if (isNull(playlistNextEpisode)) {
                 isPlaylistMode = false;
-        		updatePage();
             }
         }
+        
+        // Update the page.
+        updatePage();
 	});
     playerObserver.observe($('#players')[0], {
         attributes: true
