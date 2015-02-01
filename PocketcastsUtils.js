@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.2.3
+// @version      1.3.0
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -237,9 +237,10 @@ $(function() {
     /**
      * Show/hide seen episodes.
      */
-    var STATUS_UNWATCHED = '.played_status_0, .played_status_1';
-    var STATUS_PARTIAL = '.played_status_2';
-    var STATUS_WATCHED = '.played_status_3';
+    var SELECTOR_EPISODES = '.episode_row';
+    var SELECTOR_STATUS_UNWATCHED = '.played_status_0, .played_status_1';
+    var SELECTOR_STATUS_PARTIAL = '.played_status_2';
+    var SELECTOR_STATUS_WATCHED = '.played_status_3';
     function doHide(elems, callback) {
         $(elems).hide();
         $(elems).last().show();
@@ -260,7 +261,7 @@ $(function() {
     function doSaneMode(callback) {
         doLoadAll(function() {    
         	doOrderInverse();
-            doHide(STATUS_WATCHED);
+            doHide(SELECTOR_STATUS_WATCHED);
             
             // Callback, if given.
             doCallback(callback);
@@ -270,45 +271,49 @@ $(function() {
     /**
      * Parsing/formatting time.
      */
-    var MINUTE = 1;
-    var HOUR = 60 * MINUTE;
-    var DAY = 24 * HOUR;
-    var WEEK = 7 * DAY;
+    var TIME_MINUTE = 1;
+    var TIME_HOUR = 60 * TIME_MINUTE;
+    var TIME_DAY = 24 * TIME_HOUR;
+    var TIME_WEEK = 7 * TIME_DAY;
+    // Parse the time.
     function timeParse(text) {
         var match = /(?:([0-9]+) hours?)?\s*(?:([0-9]+) minutes?)?/.exec(text);
         var num = 0;
         if (match[1] != undefined) {
-            num += (parseInt(match[1]) * 60);
+            num += (parseInt(match[1]) * TIME_HOUR);
         }
         if (match[2] != undefined) {
-            num += parseInt(match[2]);
+            num += parseInt(match[2]) * TIME_MINUTE;
         }
         return num
     }
-    function timeFormatShort(num) {
-        var hours = Math.floor(num / HOUR);
-        var minutes = num % HOUR;
-        return hours + ':' + (minutes < 10 ? '0' : '') + minutes;
-    }
-    function timeFormatFull(num) {
-        var weeks = Math.floor(num / WEEK);
-        var days = Math.floor((num % WEEK) / DAY);
-        var hours = Math.floor((num % DAY) / HOUR);
-        var minutes = num % HOUR;
-        var parts = [
-        	weeks > 1 ? (weeks + ' weeks ') : (weeks > 0 ? (weeks + ' week ') : ''),
-            days > 1 ? (days + ' days ') : (days > 0 ? (days + ' day ') : ''),
-            hours > 1 ? (hours + ' hours ') : (hours > 0 ? (hours + ' hour ') : ''),
-            minutes > 1 ? (minutes + ' minutes ') : (minutes > 0 ? (minutes + ' minute ') : '')
-        ];
-        return _.filter(parts).join(' ');
-    }
+    // Parse the time of all given elements, calculating the sum time.
     function timeCombine(elems) {
         var sum = 0;
         $(elems).find('.episode_time').each(function() {
             sum += timeParse($(this).text());
         });
         return sum;
+    }
+    // Short format: HH:MM
+    function timeFormatShort(num) {
+        var hours = Math.floor(num / TIME_HOUR);
+        var minutes = num % TIME_HOUR;
+        return hours + ':' + (minutes < 10 ? '0' : '') + minutes;
+    }
+    // Long format: W weeks, D days, H hours, M minutes
+    function timeFormatFull(num) {
+        var weeks = Math.floor(num / TIME_WEEK);
+        var days = Math.floor((num % TIME_WEEK) / TIME_DAY);
+        var hours = Math.floor((num % TIME_DAY) / TIME_HOUR);
+        var minutes = num % TIME_HOUR;
+        var parts = [
+        	weeks > 1 ? (weeks + ' weeks ') : (weeks > 0 ? (weeks + ' week ') : ''),
+            days > 1 ? (days + ' days ') : (days > 0 ? (days + ' day ') : ''),
+            hours > 1 ? (hours + ' hours ') : (hours > 0 ? (hours + ' hour ') : ''),
+            minutes > 1 ? (minutes + ' minutes ') : (minutes > 0 ? (minutes + ' minute ') : '')
+        ];
+        return _.filter(parts).join(', ');
     }
     
     /**
@@ -322,8 +327,8 @@ $(function() {
     var iconLoadMore = createIcon('tag', 'Load more', doLoadMore);
     var iconLoadAll = createIcon('tags', 'Load all', doLoadAll);
     var dropShow = createDropdown('eye-open', 'Show/hide', [
-        ['eye-open', 'Show seen episodes', _.partial(doShow, STATUS_WATCHED)],
-        ['eye-close', 'Hide seen episodes', _.partial(doHide, STATUS_WATCHED)]
+        ['eye-open', 'Show seen episodes', _.partial(doShow, SELECTOR_STATUS_WATCHED)],
+        ['eye-close', 'Hide seen episodes', _.partial(doHide, SELECTOR_STATUS_WATCHED)]
     ]);
     var dropOrder = createDropdown('sort', 'Order', [
         ['sort-by-order', 'Order newest -> oldest', doOrderRegular],
@@ -383,9 +388,17 @@ $(function() {
         setState(isPodcastPage && canLoadMore, [iconLoadMore, iconLoadAll]);
         
         // Set the stats.
-    	setEpisodeStats('total', $('.episode_time'));
-    	setEpisodeStats('watched', $(STATUS_WATCHED));
-    	setEpisodeStats('unwatched', $(STATUS_UNWATCHED));
+    	setEpisodeStats('total', $(SELECTOR_EPISODES));
+    	setEpisodeStats('watched', $(SELECTOR_STATUS_WATCHED));
+    	setEpisodeStats('unwatched', $(SELECTOR_STATUS_UNWATCHED));
+    
+    	// Load the shownotes of all episodes.
+        $('.episode_row').each(function() {
+            var episode = $(this).scope().episode;
+            if (episode != null) {
+            	EpisodeHelper.loadShowNotes($, episode);
+            }
+        });
         
         // If a switch between podcasts is made, reset the order flag.
         if (podcastID != null && podcastID != prevPodcastID) {
@@ -395,5 +408,41 @@ $(function() {
     pageObserver.observe($('#content_middle')[0], {
         subtree: true,
         childList: true,
+    });
+
+	/**
+	 * Search box.
+	 */
+	var searchBox = $('.podcast_search input');
+	var prevSearchValue = '';
+    $(searchBox).on('change keyup paste', _.debounce(function() {
+        // If the value didn't change, don't bother.
+        if (prevSearchValue == $(searchBox).val()) {
+            return;
+        }
+        
+        // Get the search parameter.
+        var isFirstSearch = prevSearchValue == '';
+        prevSearchValue = $(searchBox).val();
+        var searchValue = new RegExp($(searchBox).val());
+        
+        // Show/hide elements.
+        $(SELECTOR_EPISODES).each(function() {
+            // Save the visibility.
+            if (isFirstSearch) {
+                $(this).data('visible', $(this).is(':visible'));
+            }
+            
+            // Show/hide element.
+            var episode = $(this).scope().episode;
+            if (!isFirstSearch ? $(this).data('visible') : searchValue.test(episode.title) || searchValue.test(episode.show_notes)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    }, 100));
+    $('.clear_search').on('click', function() {
+        $(searchBox).trigger('change');
     });
 });
