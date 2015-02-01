@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.3.1
+// @version      1.3.2
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -271,47 +271,38 @@ $(function() {
     /**
      * Parsing/formatting time.
      */
-    var TIME_MINUTE = 1;
+    var TIME_SECOND = 1;
+    var TIME_MINUTE = 60 * TIME_SECOND;
     var TIME_HOUR = 60 * TIME_MINUTE;
     var TIME_DAY = 24 * TIME_HOUR;
     var TIME_WEEK = 7 * TIME_DAY;
-    // Parse the time.
-    function timeParse(text) {
-        var match = /(?:([0-9]+) hours?)?\s*(?:([0-9]+) minutes?)?/.exec(text);
-        var num = 0;
-        if (match[1] != undefined) {
-            num += (parseInt(match[1]) * TIME_HOUR);
-        }
-        if (match[2] != undefined) {
-            num += parseInt(match[2]) * TIME_MINUTE;
-        }
-        return num
-    }
     // Parse the time of all given elements, calculating the sum time.
     function timeCombine(elems) {
         var sum = 0;
-        $(elems).find('.episode_time').each(function() {
-            sum += timeParse($(this).text());
+        $(elems).each(function() {
+            sum += $(this).scope().episode.duration;
         });
         return sum;
     }
     // Short format: HH:MM
     function timeFormatShort(num) {
         var hours = Math.floor(num / TIME_HOUR);
-        var minutes = num % TIME_HOUR;
+        var minutes = Math.floor((num % TIME_HOUR) / TIME_MINUTE);
         return hours + ':' + (minutes < 10 ? '0' : '') + minutes;
     }
-    // Long format: W weeks, D days, H hours, M minutes
+    // Long format: W weeks, D days, H hours, M minutes, S seconds
     function timeFormatFull(num) {
         var weeks = Math.floor(num / TIME_WEEK);
         var days = Math.floor((num % TIME_WEEK) / TIME_DAY);
         var hours = Math.floor((num % TIME_DAY) / TIME_HOUR);
-        var minutes = num % TIME_HOUR;
+        var minutes = Math.floor((num % TIME_HOUR) / TIME_MINUTE);
+        var seconds = num % TIME_MINUTE;
         var parts = [
-        	weeks > 1 ? (weeks + ' weeks ') : (weeks > 0 ? (weeks + ' week ') : ''),
-            days > 1 ? (days + ' days ') : (days > 0 ? (days + ' day ') : ''),
-            hours > 1 ? (hours + ' hours ') : (hours > 0 ? (hours + ' hour ') : ''),
-            minutes > 1 ? (minutes + ' minutes ') : (minutes > 0 ? (minutes + ' minute ') : '')
+        	weeks > 0 ? (weeks > 1 ? (weeks + ' weeks') : (weeks + ' week')) : '',
+            days > 0 ? (days > 1 ? (days + ' days') : (days + ' day')) : '',
+            hours > 0 ? (hours > 1 ? (hours + ' hours') : (hours + ' hour')) : '',
+            minutes > 0 ? (minutes > 1 ? (minutes + ' minutes') : (minutes + ' minute')) : '',
+            seconds > 0 ? (seconds > 1 ? (seconds + ' seconds') : (seconds + ' second')) : '',
         ];
         return _.filter(parts).join(', ');
     }
@@ -328,11 +319,11 @@ $(function() {
     var iconLoadAll = createIcon('tags', 'Load all', doLoadAll);
     var dropShow = createDropdown('eye-open', 'Show/hide', [
         ['eye-open', 'Show seen episodes', _.partial(doShow, SELECTOR_STATUS_WATCHED)],
-        ['eye-close', 'Hide seen episodes', _.partial(doHide, SELECTOR_STATUS_WATCHED)]
+        ['eye-close', 'Hide seen episodes', _.partial(doHide, SELECTOR_STATUS_WATCHED)],
     ]);
     var dropOrder = createDropdown('sort', 'Order', [
         ['sort-by-order', 'Order newest -> oldest', doOrderRegular],
-        ['sort-by-order-alt', 'Order oldest -> newest', doOrderInverse]
+        ['sort-by-order-alt', 'Order oldest -> newest', doOrderInverse],
     ]);
     var dropStats = createDropdown('info-sign', 'Information', [
         ['', 'Total episodes:' + createEpisodeStats('total'), noop],
