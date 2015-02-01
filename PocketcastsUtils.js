@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.3.0
+// @version      1.3.1
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -416,15 +416,17 @@ $(function() {
 	var searchBox = $('.podcast_search input');
 	var prevSearchValue = '';
     $(searchBox).on('change keyup paste', _.debounce(function() {
+        // Get the search parameter.
+        var searchValue = $(searchBox).val();
+        var searchRegex = new RegExp(searchValue, 'i');
+        var isSearch = searchValue != '';
+        var isFirstSearch = isSearch && prevSearchValue == '';
+        
         // If the value didn't change, don't bother.
-        if (prevSearchValue == $(searchBox).val()) {
+        if (prevSearchValue == searchValue) {
             return;
         }
-        
-        // Get the search parameter.
-        var isFirstSearch = prevSearchValue == '';
-        prevSearchValue = $(searchBox).val();
-        var searchValue = new RegExp($(searchBox).val());
+        prevSearchValue = searchValue;
         
         // Show/hide elements.
         $(SELECTOR_EPISODES).each(function() {
@@ -435,7 +437,7 @@ $(function() {
             
             // Show/hide element.
             var episode = $(this).scope().episode;
-            if (!isFirstSearch ? $(this).data('visible') : searchValue.test(episode.title) || searchValue.test(episode.show_notes)) {
+            if (isSearch ? (searchRegex.test(episode.title) || searchRegex.test(episode.show_notes)) : $(this).data('visible')) {
                 $(this).show();
             } else {
                 $(this).hide();
