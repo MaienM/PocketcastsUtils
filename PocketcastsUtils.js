@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.3.2
+// @version      1.4.0
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -16,6 +16,13 @@ $(function() {
     if (MutationObserver == null) {
         console.error("Your piece of shit browser does not support MutationObserver.");
         return;
+    }
+    
+    /**
+     * Check whether a value is nullish.
+     */
+    function isNull(value) {
+        return value == null || value == undefined || value == '';
     }
     
     /**
@@ -53,14 +60,25 @@ $(function() {
         });
         return group;
     }
-    function createIcon(cls, description, callback) {
-        var btn = $('<button type="button" class="btn btn-default"><span class="glyphicon" aria-hidden="true"></span></button>');
-        var icon = $(btn).find('span');
-        $(btn).attr('aria-label', description);
-        $(icon).addClass('glyphicon-' + cls);    
-        $(icon).after(' ' + description);
-        $(icon).css('float', 'left');
-        if (callback != undefined) {
+    function createButton(cls, description, callback) {
+        var btn = $('<button type="button" class="btn btn-default"></button>');
+        var icon = $(btn).append('<span class="glyphicon" aria-hidden="true" style="float: left;"></span>');
+        var desc = $(btn).append('<span class="description"></span>');
+        setButton(btn, cls, description, callback);
+        return btn;
+    }
+    function setButton(btn, cls, description, callback) {
+        if (!isNull(cls)) {
+            var icon = $(btn).find('.glyphicon');
+            $(icon).attr('class', 'glyphicon');
+            $(icon).addClass('glyphicon-' + cls);
+        }
+        if (!isNull(description)) {
+            var desc = $(btn).find('.description');
+            $(btn).attr('aria-label', description);
+            $(desc).html(description);
+        }
+        if (!isNull(callback)) {
             $(btn).on('click', callback);
         }
         return btn;
@@ -303,9 +321,48 @@ $(function() {
             hours > 0 ? (hours > 1 ? (hours + ' hours') : (hours + ' hour')) : '',
             minutes > 0 ? (minutes > 1 ? (minutes + ' minutes') : (minutes + ' minute')) : '',
             seconds > 0 ? (seconds > 1 ? (seconds + ' seconds') : (seconds + ' second')) : '',
-        ];
+        ];//*/
         return _.filter(parts).join(', ');
     }
+            
+    /**
+     * Playlist mode.
+     */
+    var isPlaylistMode = false
+    var playlistPodcast = null;
+    var playlistNextEpisode = null
+    function doPlaylistMode() {
+        // Update the status/button.
+        isPlaylistMode = !isPlaylistMode;
+        updatePage();
+            
+        // Determine the next episode.
+        playlistPodcast = podcast;
+        updateNextEpisode();
+    }
+    function updateNextEpisode() {
+        var lastEpisode = $('#players').scope().mediaPlayer.episode;
+        playlistNextEpisode = playlistPodcast.episodes[_.indexOf(playlistPodcast.episodes, lastEpisode) - 1];
+    }
+	var playerObserver = new MutationObserver(function(mutations, observer) {
+        // Playback is over, go to the next episode.
+        if (isPlaylistMode && !$('#players').is(':visible')) {
+            // Play the next queued episode.
+            if (!isNull(playlistNextEpisode)) {
+                $('#podcast_show').scope().playPause(playlistNextEpisode, playlistPodcast);
+            }
+            
+            // Determine the next episode.
+        	updateNextEpisode();
+            if (isNull(playlistNextEpisode)) {
+                isPlaylistMode = false;
+        		updatePage();
+            }
+        }
+	});
+    playerObserver.observe($('#players')[0], {
+        attributes: true
+    });
     
     /**
      * Create the menu.
@@ -314,9 +371,10 @@ $(function() {
     $(menu).css('width', '100%');
     
     // Create the menu elements.
-    var iconSaneMode = createIcon('user', 'Sane mode', doSaneMode);
-    var iconLoadMore = createIcon('tag', 'Load more', doLoadMore);
-    var iconLoadAll = createIcon('tags', 'Load all', doLoadAll);
+    var buttonSaneMode = createButton('user', 'Sane mode', doSaneMode);
+    var buttonPlaylistMode = createButton('play', 'Playlist mode', doPlaylistMode);
+    var buttonLoadMore = createButton('tag', 'Load more', doLoadMore);
+    var buttonLoadAll = createButton('tags', 'Load all', doLoadAll);
     var dropShow = createDropdown('eye-open', 'Show/hide', [
         ['eye-open', 'Show seen episodes', _.partial(doShow, SELECTOR_STATUS_WATCHED)],
         ['eye-close', 'Hide seen episodes', _.partial(doHide, SELECTOR_STATUS_WATCHED)],
@@ -333,9 +391,10 @@ $(function() {
         
     // Add all elements to the proper location.
     $('div.header').after(menu);
-    $(menu).append(iconSaneMode);
-    $(menu).append(iconLoadMore);
-    $(menu).append(iconLoadAll);
+    $(menu).append(buttonSaneMode);
+    $(menu).append(buttonPlaylistMode);
+    $(menu).append(buttonLoadMore);
+    $(menu).append(buttonLoadAll);
     $(menu).append(dropShow);
     $(menu).append(dropOrder);
     $(menu).append(dropStats);
@@ -365,18 +424,21 @@ $(function() {
     /**
      * Watch the page for changes to enable/disable certain buttons at certain moments.
      */
-    var prevPodcastID = null;
-    var podcastID = null;
-    var pageObserver = new MutationObserver(function(mutations, observer) {
+    var prevPodcast = null;
+    var podcast = null;
+    function updatePage(mutations, observer) {
         // Determine the current state.
-        prevPodcastID = podcastID;
-        podcastID = $('#podcast_header_text h1').text();
+        prevPodcast = podcast;
+        podcast = $('#podcast_show').scope();
         var isPodcastPage = $('#podcast_show').is(':visible');
+        var isPlaying = $('#players').is(':visible') || true;
         var canLoadMore = $('.show_more').is(':visible');
 
         // Set the button states.
-        setState(isPodcastPage, [iconSaneMode, dropShow, dropOrder]);
-        setState(isPodcastPage && canLoadMore, [iconLoadMore, iconLoadAll]);
+        setState(isPodcastPage, [buttonSaneMode, dropShow, dropOrder, dropStats]);
+    	setState((isPlaying && isPodcastPage) || isPlaylistMode, [buttonPlaylistMode]);
+    	setButton(buttonPlaylistMode, isPlaylistMode ? 'pause' : 'play', null, null);
+        setState(isPodcastPage && canLoadMore, [buttonLoadMore, buttonLoadAll]);
         
         // Set the stats.
     	setEpisodeStats('total', $(SELECTOR_EPISODES));
@@ -392,10 +454,11 @@ $(function() {
         });
         
         // If a switch between podcasts is made, reset the order flag.
-        if (podcastID != null && podcastID != prevPodcastID) {
+        if (podcast != null && podcast != prevPodcast) {
             doOrderReset();
         }
-    });
+    }
+    var pageObserver = new MutationObserver(updatePage);
     pageObserver.observe($('#content_middle')[0], {
         subtree: true,
         childList: true,
