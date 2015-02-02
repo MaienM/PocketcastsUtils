@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.4.3
+// @version      1.4.4
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -329,7 +329,7 @@ $(function() {
      * Playlist mode.
      */
     var isPlaylistMode = false
-    var playlistPodcast = null;
+    var playlistPodcastController = null;
     var playlistNextEpisode = null
     function doPlaylistMode() {
         // Update the status/button.
@@ -337,12 +337,12 @@ $(function() {
         updatePage();
             
         // Determine the next episode.
-        playlistPodcast = podcast;
+        playlistPodcastController = podcastController;
         updateNextEpisode();
     }
     function updateNextEpisode() {
         var lastEpisode = $('#players').scope().mediaPlayer.episode;
-        playlistNextEpisode = playlistPodcast.episodes[_.indexOf(playlistPodcast.episodes, lastEpisode) - 1];
+        playlistNextEpisode = playlistPodcastController.episodes[_.indexOf(playlistPodcastController.episodes, lastEpisode) - 1];
     }
     var playerObserver = new MutationObserver(function(mutations, observer) {
         // Playback is over, go to the next episode.
@@ -353,7 +353,8 @@ $(function() {
                 var announcement = new SpeechSynthesisUtterance('Next up: ' + playlistNextEpisode.title);
                 
                 // Once the announcement is done, go to the next episode.
-                announcement.onend = _.partial($('#podcast_show').scope().playPause, playlistNextEpisode, playlistPodcast);
+                console.log(playlistPodcastController.podcast);
+                announcement.onend = _.partial($('#podcast_show').scope().playPause, playlistNextEpisode, playlistPodcastController.podcast);
                 
                 // Start the announcement.
                 speechSynthesis.speak(announcement);
@@ -433,12 +434,12 @@ $(function() {
     /**
      * Watch the page for changes to enable/disable certain buttons at certain moments.
      */
-    var prevPodcast = null;
-    var podcast = null;
+    var prevPodcastController = null;
+    var podcastController = null;
     function updatePage(mutations, observer) {
         // Determine the current state.
-        prevPodcast = podcast;
-        podcast = $('#podcast_show').scope();
+        prevPodcastController = podcastController;
+        podcastController = $('#podcast_show').scope();
         var isPodcastPage = $('#podcast_show').is(':visible');
         var isPlaying = $('#players').is(':visible');
         var canLoadMore = $('.show_more').is(':visible');
@@ -463,7 +464,7 @@ $(function() {
         });
         
         // If a switch between podcasts is made, reset the order flag.
-        if (podcast != null && podcast != prevPodcast) {
+        if (podcastController != null && podcastController != prevPodcastController) {
             doOrderReset();
         }
     }
