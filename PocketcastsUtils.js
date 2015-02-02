@@ -90,7 +90,7 @@ $(function() {
         return '<stat id="stat-' + name + '" class="stat" style="width: ' + width + ';"></stat>';
     }
     function createEpisodeStats(name) {
-    	return createStat(name + '-count', '40px') + createStat(name + '-time');
+        return createStat(name + '-count', '40px') + createStat(name + '-time');
     }
     
     // Multiline Function String - Nate Ferrero - Public Domain - http://stackoverflow.com/a/14496573
@@ -115,25 +115,25 @@ $(function() {
     // Add some custom tweaks to fix minor issues caused by bootstrap.
     var style = $('<style></style>');
     $(style).html(heredoc(function(){/*
-    	body {
-        	font-family: "proxima-nova","Helvetica Neue",Helvetica,Arial,sans-serif;
+        body {
+            font-family: "proxima-nova","Helvetica Neue",Helvetica,Arial,sans-serif;
         }
         h1 {
-        	font-size: 24px;
+            font-size: 24px;
         }
         h6.podcast_search {
-        	margin: 0;
+            margin: 0;
         }
         .episodes_list h6 {
-        	margin: 0;
+            margin: 0;
         }
         .stat {
-        	float: right;
+            float: right;
             text-align: right;
-        	padding: 0 2px;
+            padding: 0 2px;
         }
         .stat:first-child {
-        	padding-right: 0;
+            padding-right: 0;
         }
    */}));
     $('head').append(style);
@@ -170,9 +170,9 @@ $(function() {
         doCallback(callback);
     }
     
-	/**
- 	 * Load-all functionality.
- 	 */
+    /**
+      * Load-all functionality.
+      */
     function doLoadAll(callback) {
         // Every time the episodes list changes, check whether there is more still to load.
         var listObserver = new MutationObserver(function(mutations, observer) {
@@ -278,7 +278,7 @@ $(function() {
      */
     function doSaneMode(callback) {
         doLoadAll(function() {    
-        	doOrderInverse();
+            doOrderInverse();
             doHide(SELECTOR_STATUS_WATCHED);
             
             // Callback, if given.
@@ -316,7 +316,7 @@ $(function() {
         var minutes = Math.floor((num % TIME_HOUR) / TIME_MINUTE);
         var seconds = num % TIME_MINUTE;
         var parts = [
-        	weeks > 0 ? (weeks > 1 ? (weeks + ' weeks') : (weeks + ' week')) : '',
+            weeks > 0 ? (weeks > 1 ? (weeks + ' weeks') : (weeks + ' week')) : '',
             days > 0 ? (days > 1 ? (days + ' days') : (days + ' day')) : '',
             hours > 0 ? (hours > 1 ? (hours + ' hours') : (hours + ' hour')) : '',
             minutes > 0 ? (minutes > 1 ? (minutes + ' minutes') : (minutes + ' minute')) : '',
@@ -344,13 +344,13 @@ $(function() {
         var lastEpisode = $('#players').scope().mediaPlayer.episode;
         playlistNextEpisode = playlistPodcast.episodes[_.indexOf(playlistPodcast.episodes, lastEpisode) - 1];
     }
-	var playerObserver = new MutationObserver(function(mutations, observer) {
+    var playerObserver = new MutationObserver(function(mutations, observer) {
         // Playback is over, go to the next episode.
         if (isPlaylistMode && !$('#players').is(':visible')) {
             // Play the next queued episode.
             if (!isNull(playlistNextEpisode)) {
                 // Prepare an announcement for the episode.
-            	var announcement = new SpeechSynthesisUtterance('Next up: ' + playlistNextEpisode.title);
+                var announcement = new SpeechSynthesisUtterance('Next up: ' + playlistNextEpisode.title);
                 
                 // Once the announcement is done, go to the next episode.
                 announcement.onend = _.partial($('#podcast_show').scope().playPause, playlistNextEpisode, playlistPodcast);
@@ -360,7 +360,7 @@ $(function() {
             }
             
             // Determine the next episode.
-        	updateNextEpisode();
+            updateNextEpisode();
             if (isNull(playlistNextEpisode)) {
                 isPlaylistMode = false;
             }
@@ -368,7 +368,7 @@ $(function() {
         
         // Update the page.
         updatePage();
-	});
+    });
     playerObserver.observe($('#players')[0], {
         attributes: true
     });
@@ -414,22 +414,22 @@ $(function() {
     function setState(state, elems) {
         var btns = $(elems).map(function() { return this.toArray(); }).find('button').addBack().filter('button');
         if (state) {
-        	$(btns).removeClass('disabled');
+            $(btns).removeClass('disabled');
         } else {
             $(btns).addClass('disabled');
         }
-    }    
+    }
         
     /**
      * Update the stats in the menu.
      */
     function setEpisodeStats(name, episodes) {
-    	$('#stat-' + name + '-count').text($(episodes).length);
+        $('#stat-' + name + '-count').text($(episodes).length);
         var time = timeCombine($(episodes));
-    	$('#stat-' + name + '-time').text(timeFormatShort(time));
-        $('#stat-' + name + '-time').attr('title', timeFormatFull(time));
+        $('#stat-' + name + '-time').text(timeFormatShort(time));
+        $('#stat-' + name + '-time').attr('title', timeFormatFull(time));        
     }
-    
+
     /**
      * Watch the page for changes to enable/disable certain buttons at certain moments.
      */
@@ -445,20 +445,20 @@ $(function() {
 
         // Set the button states.
         setState(isPodcastPage, [buttonSaneMode, dropShow, dropOrder, dropStats]);
-    	setState((isPlaying && isPodcastPage) || isPlaylistMode, [buttonPlaylistMode]);
-    	setButton(buttonPlaylistMode, isPlaylistMode ? 'pause' : 'play', null, null);
+        setState((isPlaying && isPodcastPage) || isPlaylistMode, [buttonPlaylistMode]);
+        setButton(buttonPlaylistMode, isPlaylistMode ? 'pause' : 'play', null, null);
         setState(isPodcastPage && canLoadMore, [buttonLoadMore, buttonLoadAll]);
         
         // Set the stats.
-    	setEpisodeStats('total', $(SELECTOR_EPISODES));
-    	setEpisodeStats('watched', $(SELECTOR_STATUS_WATCHED));
-    	setEpisodeStats('unwatched', $(SELECTOR_STATUS_UNWATCHED));
+        setEpisodeStats('total', $(SELECTOR_EPISODES));
+        setEpisodeStats('watched', $(SELECTOR_STATUS_WATCHED));
+        setEpisodeStats('unwatched', $(SELECTOR_STATUS_UNWATCHED));
     
-    	// Load the shownotes of all episodes.
+        // Load the shownotes of all episodes.
         $('.episode_row').each(function() {
             var episode = $(this).scope().episode;
             if (episode != null) {
-            	EpisodeHelper.loadShowNotes($, episode);
+                EpisodeHelper.loadShowNotes($, episode);
             }
         });
         
@@ -473,11 +473,11 @@ $(function() {
         childList: true,
     });
 
-	/**
-	 * Search box.
-	 */
-	var searchBox = $('.podcast_search input');
-	var prevSearchValue = '';
+    /**
+     * Search box.
+     */
+    var searchBox = $('.podcast_search input');
+    var prevSearchValue = '';
     $(searchBox).on('change keyup paste', _.debounce(function() {
         // Get the search parameter.
         var searchValue = $(searchBox).val();
