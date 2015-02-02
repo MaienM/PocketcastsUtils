@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.4.4
+// @version      1.4.5
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -353,7 +353,6 @@ $(function() {
                 var announcement = new SpeechSynthesisUtterance('Next up: ' + playlistNextEpisode.title);
                 
                 // Once the announcement is done, go to the next episode.
-                console.log(playlistPodcastController.podcast);
                 announcement.onend = _.partial($('#podcast_show').scope().playPause, playlistNextEpisode, playlistPodcastController.podcast);
                 
                 // Start the announcement.
