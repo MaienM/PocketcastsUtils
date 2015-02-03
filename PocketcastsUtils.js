@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.4.5
+// @version      1.5.0
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -123,6 +123,30 @@ $(function() {
         }
         h6.podcast_search {
             margin: 0;
+        }
+       	#header {
+        	top: -66px;
+        }
+        #header:hover {
+        	top: 0;
+        	-webkit-animation: slidein 1s;
+        }
+        @-webkit-keyframes slidein {
+        	from {
+            	top: -66px;
+            }
+            to {
+            	top: 0;
+            }
+        }
+        #main {
+        	padding-top: 4px;
+        }
+        #content_left .episode_section {
+        	height: 41px;
+        }
+        #content_left .episode_section a {
+        	line-height: 41px !important;
         }
         .episodes_list h6 {
             margin: 0;
@@ -407,7 +431,7 @@ $(function() {
     $(menu).append(dropShow);
     $(menu).append(dropOrder);
     $(menu).append(dropStats);
-    
+        
     /**
      * Update the state of the menu items.
      */
@@ -440,6 +464,7 @@ $(function() {
         prevPodcastController = podcastController;
         podcastController = $('#podcast_show').scope();
         var isPodcastPage = $('#podcast_show').is(':visible');
+        var isDiscoverPage = $('#discover_container').is(':visible');
         var isPlaying = $('#players').is(':visible');
         var canLoadMore = $('.show_more').is(':visible');
 
