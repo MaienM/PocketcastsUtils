@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.6.2
+// @version      1.6.3
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -589,9 +589,14 @@ $(function() {
     /**
      * Search box.
      */
+    var isSearchEnabled = true;
     var searchBox = $('.podcast_search input');
     var prevSearchValue = '';
     $(searchBox).on('change keyup paste', _.debounce(function() {
+        if (!isSearchEnabled) {
+            return;
+        }
+        
         // Get the search parameter.
         var searchValue = $(searchBox).val();
         var searchRegex = new RegExp(searchValue, 'i');
@@ -636,13 +641,18 @@ $(function() {
                     'title': 'Hide the header',
                     'description': 'Hide the default header, creating more screen space.',
                     'set': _.partial(setStyleState, styleHeader),
-                    'default': true,
                 },
                 'compact_menu': {
                     'title': 'Compact menu',
                     'description': 'Make the default menu buttons more compact.',
                     'set': _.partial(setStyleState, styleCompactMenu),
-                    'default': true,
+                },
+                'search': {
+                    'title': 'Episode search',
+                    'description': 'Let the search box also filter the currently loaded episodes\' titles and descriptions.',
+                    'set': function(state) {
+                        isSearchEnabled = state;
+                    },
                 },
             },
         },
@@ -663,7 +673,6 @@ $(function() {
                 $(menuItem).hide();
             }
         };
-        setting.default = true;
         settings.menu.items[key] = setting;
     });
     
@@ -683,7 +692,9 @@ $(function() {
         
         _.each(_.pairs(group.items), function(pair) {
             var key = 'setting-' + pair[0];
-            var setting = pair[1];
+            var setting = _.defaults(pair[1], {
+                'default': true,
+            });
         
             // Create the checkbox.
             var checkbox = $('<input id="' + key + '" type="checkbox" />');
