@@ -130,9 +130,9 @@ $(function() {
      * Create a style.
      */
     function addStyle(content) {
-    	var style = $('<style></style>');
-    	$(style).html(content);
-    	$('head').append(style);
+        var style = $('<style></style>');
+        $(style).html(content);
+        $('head').append(style);
         return style;
     }
     
@@ -170,18 +170,18 @@ $(function() {
             padding-right: 0;
         }
         #settings-container {
-        	display: none;
-        	position: absolute;
+            display: none;
+            position: absolute;
             top: 0;
             left: 0;
-        	width: 100%;
+            width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 10;
         }
         #settings {
-        	position: absolute;
-        	width: 60%;
+            position: absolute;
+            width: 60%;
             height: 80%;
             top: 10%;
             left: 20%;
@@ -191,7 +191,7 @@ $(function() {
             padding: 0 2em;
         }
         #settings .close {
-        	position: absolute;
+            position: absolute;
             right: 0;
             top: 0;
             padding: 10px;
@@ -200,10 +200,10 @@ $(function() {
             border-bottom-left-radius: 5px;
         }
         #settings input + label {
-        	margin-left: 0.5em;
+            margin-left: 0.5em;
         }
         #settings .help-block {
-        	margin-top: -3px;
+            margin-top: -3px;
         }
     */}));
     
@@ -211,23 +211,23 @@ $(function() {
      * Styling that hides the header.
      */
     var styleHeader = addStyle(heredoc(function(){/*
-       	#header {
-        	top: -66px;
+           #header {
+            top: -66px;
         }
         #header:hover {
-        	top: 0;
-        	-webkit-animation: slidein 1s;
+            top: 0;
+            -webkit-animation: slidein 1s;
         }
         @-webkit-keyframes slidein {
-        	from {
-            	top: -66px;
+            from {
+                top: -66px;
             }
             to {
-            	top: 0;
+                top: 0;
             }
         }
         #main {
-        	padding-top: 4px;
+            padding-top: 4px;
         }
     */}));
     
@@ -236,10 +236,10 @@ $(function() {
      */
     var styleCompactMenu = addStyle(heredoc(function(){/*
         #content_left .episode_section {
-        	height: 41px;
+            height: 41px;
         }
         #content_left .episode_section a {
-        	line-height: 41px !important;
+            line-height: 41px !important;
         }
    */}));
     
@@ -512,12 +512,12 @@ $(function() {
     var menuItems = [
         buttonSaneMode,
         buttonPlaylistMode,
-    	buttonLoadMore,
-    	buttonLoadAll,
-    	dropShow,
-    	dropOrder,
-    	dropStats,
-	];   
+        buttonLoadMore,
+        buttonLoadAll,
+        dropShow,
+        dropOrder,
+        dropStats,
+    ];   
     $(menu).append(menuItems);
         
     /**
@@ -627,12 +627,12 @@ $(function() {
     /**
      * Settings.
      */
-	// Define the settings.
+    // Define the settings.
     var settings = {
         'tweaks': {
             'title': 'Tweaks',
             'items': {
-                'header': {	
+                'header': {    
                     'title': 'Hide the header',
                     'description': 'Hide the default header, creating more screen space.',
                     'set': _.partial(setStyleState, styleHeader),
@@ -650,7 +650,7 @@ $(function() {
             'title': 'Extra menu',
             'items': {},
         },
-	}
+    }
     _.each(menuItems, function(menuItem) {
         var key = $(menuItem).data('cls');
         var setting = {};
@@ -669,11 +669,11 @@ $(function() {
     
     // Build the settings page.
     var settingsContainer = $('<div id="settings-container"></div>');
-	var settingsDiv = $('<div id="settings"><h2>Settings</h2></div>');
-	var settingsCloseButton = $('<span class="close glyphicon glyphicon-remove"></span>');
-	$(settingsContainer).append(settingsDiv);
-	$(settingsDiv).append(settingsCloseButton);
-	$('body').append(settingsContainer);
+    var settingsDiv = $('<div id="settings"><h2>Settings</h2></div>');
+    var settingsCloseButton = $('<span class="close glyphicon glyphicon-remove"></span>');
+    $(settingsContainer).append(settingsDiv);
+    $(settingsDiv).append(settingsCloseButton);
+    $('body').append(settingsContainer);
     _.each(_.pairs(settings), function(pair) {
         var key = 'setting-' + pair[0];
         var group = pair[1];
@@ -683,7 +683,7 @@ $(function() {
         
         _.each(_.pairs(group.items), function(pair) {
             var key = 'setting-' + pair[0];
-        	var setting = pair[1];
+            var setting = pair[1];
         
             // Create the checkbox.
             var checkbox = $('<input id="' + key + '" type="checkbox" />');
@@ -709,7 +709,7 @@ $(function() {
         });
     });
 
-	// Show/hide the settings container.
+    // Show/hide the settings container.
     $('.settings_cog').on('click', function() {
         $(settingsContainer).show();
     });
@@ -719,7 +719,7 @@ $(function() {
     $(settingsContainer).on('click', function() {
         $(settingsContainer).hide();
     });
-	$(settingsDiv).on('click', function(e) {
+    $(settingsDiv).on('click', function(e) {
         e.stopPropagation();
     });
 });
