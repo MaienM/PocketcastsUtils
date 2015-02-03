@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.6.3
+// @version      1.6.4
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -636,16 +636,12 @@ $(function() {
     var settings = {
         'tweaks': {
             'title': 'Tweaks',
+            'description': 'Tweaks on default functionalities/page elements.',
             'items': {
                 'header': {    
                     'title': 'Hide the header',
                     'description': 'Hide the default header, creating more screen space.',
                     'set': _.partial(setStyleState, styleHeader),
-                },
-                'compact_menu': {
-                    'title': 'Compact menu',
-                    'description': 'Make the default menu buttons more compact.',
-                    'set': _.partial(setStyleState, styleCompactMenu),
                 },
                 'search': {
                     'title': 'Episode search',
@@ -656,11 +652,38 @@ $(function() {
                 },
             },
         },
-        'menu': {
-            'title': 'Extra menu',
+        'menu_default': {
+            'title': 'Default menu',
+            'description': 'Tweaks on the default menu.',
+            'items': {
+                'compact_menu': {
+                    'title': 'Compact',
+                    'description': 'Make the default menu buttons more compact.',
+                    'set': _.partial(setStyleState, styleCompactMenu),
+                },
+            },
+        },
+        'menu_extra': {
+            'title': 'Extra menu item.',
+            'description': 'Tweaks on default functionalities/page elements.',
             'items': {},
         },
-    }
+    };
+    _.each(['Discover', 'New Releases', 'In Progress'], function(name) {
+        var key = name.toLowerCase().replace(' ', '_');
+        var setting = {};
+        var menuItem = $('.section_' + key);
+        setting.title = name;
+        setting.description = 'Show this menu button';
+        setting.set = function(state) {
+            if (state) {
+                $(menuItem).show();
+            } else {
+                $(menuItem).hide();
+            }
+        };
+        settings.menu_default.items[key] = setting;
+    });
     _.each(menuItems, function(menuItem) {
         var key = $(menuItem).data('cls');
         var setting = {};
@@ -673,7 +696,7 @@ $(function() {
                 $(menuItem).hide();
             }
         };
-        settings.menu.items[key] = setting;
+        settings.menu_extra.items[key] = setting;
     });
     
     // Build the settings page.
