@@ -2,11 +2,12 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.5.1
+// @version      1.6.0
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
-// @grant        none
+// @grant		 GM_setValue
+// @grant		 GM_getValue
 // @require      https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js
 // ==/UserScript==
 
@@ -112,6 +113,9 @@ $(function() {
     $('head').append($('<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">'));
     $('head').append($('<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js" type="text/javascript">'));
     
+    /**
+     * Create a style.
+     */
     function addStyle(content) {
     	var style = $('<style></style>');
     	$(style).html(content);
@@ -119,8 +123,19 @@ $(function() {
         return style;
     }
     
-    // Add some custom tweaks to fix minor issues caused by bootstrap.
-    var styleFixes = addStyle(heredoc(function(){/*
+    /**
+     * Enable/disable styles.
+     */
+    function setStyleState(style, state) {
+        $(style)[0].disabled = !state;
+    }
+    
+    /**
+     * Tweaks to fix incompatibilities with bootstrap.
+     * 
+     * Also some core styles that need to be there no matter what.
+     */
+    var styleCore = addStyle(heredoc(function(){/*
         body {
             font-family: "proxima-nova","Helvetica Neue",Helvetica,Arial,sans-serif;
         }
@@ -141,7 +156,46 @@ $(function() {
         .stat:first-child {
             padding-right: 0;
         }
+        #settings-container {
+        	position: absolute;
+            top: 0;
+            left: 0;
+        	width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+        #settings {
+        	position: absolute;
+        	width: 60%;
+            height: 80%;
+            top: 10%;
+            left: 20%;
+            background-color: white;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 0 2em;
+        }
+        #settings .close {
+        	position: absolute;
+            right: 0;
+            top: 0;
+            padding: 10px;
+            border: 1px solid #333;
+            border-width: 0 0 1px 1px;
+            border-bottom-left-radius: 5px;
+        }
+        #settings input + label {
+        	margin-left: 0.5em;
+        }
+        #settings .help-block {
+        	margin-top: -3px;
+        }
     */}));
+    
+    /**
+     * Styling that hides the header.
+     */
     var styleHeader = addStyle(heredoc(function(){/*
        	#header {
         	top: -66px;
@@ -162,7 +216,11 @@ $(function() {
         	padding-top: 4px;
         }
     */}));
-    var styleButtons = addStyle(heredoc(function(){/*
+    
+    /**
+     * Styling that makes the default menu buttons smaller.
+     */
+    var styleCompactMenu = addStyle(heredoc(function(){/*
         #content_left .episode_section {
         	height: 41px;
         }
@@ -547,5 +605,72 @@ $(function() {
     }, 100));
     $('.clear_search').on('click', function() {
         $(searchBox).trigger('change');
+    });
+         
+    /**
+     * Settings.
+     */
+	// Define the settings.
+    var settings = {
+        'header': {
+            'title': 'Hide the header',
+            'description': 'Hide the default header, creating more screen space.',
+            'set': _.partial(setStyleState, styleHeader),
+            'default': true,
+        },
+        'compact_menu': {
+            'title': 'Compact menu',
+            'description': 'Make the default menu buttons more compact.',
+            'set': _.partial(setStyleState, styleCompactMenu),
+            'default': true,
+        }
+	}
+    
+    // Build the settings page.
+    var settingsContainer = $('<div id="settings-container"></div>');
+	var settingsDiv = $('<div id="settings"><h2>Settings</h2></div>');
+	var settingsCloseButton = $('<span class="close glyphicon glyphicon-remove"></span>');
+	$(settingsContainer).append(settingsDiv);
+	$(settingsDiv).append(settingsCloseButton);
+	$('body').append(settingsContainer);
+    _.each(_.pairs(settings), function(pair) {
+        var key = 'setting-' + pair[0];
+        var settings = pair[1];
+        
+        // Create the checkbox.
+        var checkbox = $('<input id="' + key + '" type="checkbox" />');
+        $(checkbox).on('change', function() {
+            var value = $(this).is(':checked');
+            GM_setValue(key, value);
+            settings.set(value);
+        });
+        
+        // Load the setting.
+        var value = GM_getValue(key, settings.default);
+        if (value) {
+            $(checkbox).click();
+        }
+        settings.set(value);
+        
+        // Create the form group.
+        var group = $('<div class="form-group"></div>');
+        $(group).append(checkbox);
+        $(group).append('<label for="' + key + '">' + settings.title + '</label>');
+        $(group).append('<p class="help-block">' + settings.description + '</p>');
+        $(settingsDiv).append(group);
+    });
+
+	// Show/hide the settings container.
+    $('.settings_cog').on('click', function() {
+        $(settingsContainer).show();
+    });
+    $(settingsCloseButton).on('click', function() {
+        $(settingsContainer).hide();
+    });
+    $(settingsContainer).on('click', function() {
+        $(settingsContainer).hide();
+    });
+	$(settingsDiv).on('click', function(e) {
+        e.stopPropagation();
     });
 });
