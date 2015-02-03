@@ -2,12 +2,12 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.6.1
+// @version      1.6.2
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
-// @grant		 GM_setValue
-// @grant		 GM_getValue
+// @grant        GM_setValue
+// @grant        GM_getValue
 // @require      https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js
 // ==/UserScript==
 
@@ -29,30 +29,36 @@ $(function() {
     /**
      * Creating buttons/menus.
      */
-    function createDropdown(cls, description, items) {
+    function createDropdown(cls, title, description, items) {
         var group = $('<div class="btn-group" role="group"><button type="button" class="btn btn-default dropdown-togggle" data-toggle="dropdown" aria-expanded="false"><span class="glyphicon"></span><span class="caret"></span></button><ul class="dropdown-menu" role="menu"></ul></div>');
         var btn = $(group).find('button');
         var icon = $(btn).find('span.glyphicon');
         var menu = $(group).find('ul');
-        $(btn).attr('aria-label', description);
+        $(group).data('cls', cls);
+        $(group).data('title', title);
+        $(group).data('description', description);
+        $(btn).attr('aria-label', title);
         $(btn).dropdown();
         $(icon).addClass('glyphicon-' + cls);
-        $(icon).after(' ' + description + ' ');
+        $(icon).after(' ' + title + ' ');
         $(icon).css('float', 'left');
+        $(btn).attr('title', description);
         $(btn).find('span.caret').css('float', 'right').css('margin-top', '0.5em');
         $(menu).css('width', '100%').css('margin-top', '-1px');
         _.each(items, function(item) {
             // Get the data.
             var icls = item[0];
-            var idescription = item[1];
-            var icallback = item[2];
+            var ititle = item[1];
+            var idescription = item[2];
+            var icallback = item[3];
             
             // Build the list item.
             var li = $('<li><a href="#"><span class="glyphicon"></span></a></li>');
             var a = $(li).find('a');
             var span = $(li).find('span');
-            $(a).append(' ' + idescription);
+            $(a).append(' ' + ititle);
             $(span).addClass('glyphicon-' + icls);
+            $(li).attr('title', idescription);
             $(li).on('click', function(e) {
                 e.preventDefault();
                 icallback();
@@ -61,26 +67,33 @@ $(function() {
         });
         return group;
     }
-    function createButton(cls, description, callback) {
+    function createButton(cls, title, description, callback) {
         var btn = $('<button type="button" class="btn btn-default"></button>');
         var icon = $(btn).append('<span class="glyphicon" aria-hidden="true" style="float: left;"></span>');
-        var desc = $(btn).append('<span class="description"></span>');
-        setButton(btn, cls, description, callback);
+        var titleElem = $(btn).append('<span class="title"></span>');
+        setButton(btn, cls, title, description, callback);
         return btn;
     }
-    function setButton(btn, cls, description, callback) {
+    function setButton(btn, cls, title, description, callback) {
         if (!isNull(cls)) {
             var icon = $(btn).find('.glyphicon');
             $(icon).attr('class', 'glyphicon');
             $(icon).addClass('glyphicon-' + cls);
+            $(btn).data('cls', cls);
+        }
+        if (!isNull(title)) {
+            var titleElem = $(btn).find('.title');
+            $(btn).attr('aria-label', title);
+            $(titleElem).html(title);
+            $(btn).data('title', title);
         }
         if (!isNull(description)) {
-            var desc = $(btn).find('.description');
-            $(btn).attr('aria-label', description);
-            $(desc).html(description);
+            $(btn).attr('title', description);
+            $(btn).data('description', description);
         }
         if (!isNull(callback)) {
             $(btn).on('click', callback);
+            $(btn).data('callback', callback);
         }
         return btn;
     }
@@ -474,35 +487,38 @@ $(function() {
      */
     var menu = $('<div class="btn-group-vertical actions"></div>');
     $(menu).css('width', '100%');
+    $('div.header').after(menu);
     
     // Create the menu elements.
-    var buttonSaneMode = createButton('user', 'Sane mode', doSaneMode);
-    var buttonPlaylistMode = createButton('play', 'Playlist mode', doPlaylistMode);
-    var buttonLoadMore = createButton('tag', 'Load more', doLoadMore);
-    var buttonLoadAll = createButton('tags', 'Load all', doLoadAll);
-    var dropShow = createDropdown('eye-open', 'Show/hide', [
-        ['eye-open', 'Show seen episodes', _.partial(doShow, SELECTOR_STATUS_WATCHED)],
-        ['eye-close', 'Hide seen episodes', _.partial(doHide, SELECTOR_STATUS_WATCHED)],
+    var buttonSaneMode = createButton('user', 'Sane mode', 'Load everything, hide watched, order old -> new.', doSaneMode);
+    var buttonPlaylistMode = createButton('play', 'Playlist mode', 'Auto-play the next episode.', doPlaylistMode);
+    var buttonLoadMore = createButton('tag', 'Load more', 'Load more episodes.', doLoadMore);
+    var buttonLoadAll = createButton('tags', 'Load all', 'Load all episodes.', doLoadAll);
+    var dropShow = createDropdown('eye-open', 'Show/hide', 'Show/hide episodes', [
+        ['eye-open', 'Show seen episodes', 'Show all seen episodes.', _.partial(doShow, SELECTOR_STATUS_WATCHED)],
+        ['eye-close', 'Hide seen episodes', 'Hide all seen episodes.', _.partial(doHide, SELECTOR_STATUS_WATCHED)],
     ]);
-    var dropOrder = createDropdown('sort', 'Order', [
-        ['sort-by-order', 'Order newest -> oldest', doOrderRegular],
-        ['sort-by-order-alt', 'Order oldest -> newest', doOrderInverse],
+    var dropOrder = createDropdown('sort', 'Order', 'Order episodes.', [
+        ['sort-by-order', 'Order newest -> oldest', 'Order from newest to oldest.', doOrderRegular],
+        ['sort-by-order-alt', 'Order oldest -> newest', 'Order from oldest to newest.', doOrderInverse],
     ]);
-    var dropStats = createDropdown('info-sign', 'Information', [
-        ['', 'Total episodes:' + createEpisodeStats('total'), noop],
-        ['', 'Watched:' + createEpisodeStats('watched'), noop],
-        ['', 'Unwatched:' + createEpisodeStats('unwatched'), noop],
+    var dropStats = createDropdown('info-sign', 'Information', 'Stats about the current podcast.', [
+        ['', 'Total episodes:' + createEpisodeStats('total'), '', noop],
+        ['', 'Watched:' + createEpisodeStats('watched'), '', noop],
+        ['', 'Unwatched:' + createEpisodeStats('unwatched'), '', noop],
     ]);//*/
         
-    // Add all elements to the proper location.
-    $('div.header').after(menu);
-    $(menu).append(buttonSaneMode);
-    $(menu).append(buttonPlaylistMode);
-    $(menu).append(buttonLoadMore);
-    $(menu).append(buttonLoadAll);
-    $(menu).append(dropShow);
-    $(menu).append(dropOrder);
-    $(menu).append(dropStats);
+    // Add all elements to the menu.
+    var menuItems = [
+        buttonSaneMode,
+        buttonPlaylistMode,
+    	buttonLoadMore,
+    	buttonLoadAll,
+    	dropShow,
+    	dropOrder,
+    	dropStats,
+	];   
+    $(menu).append(menuItems);
         
     /**
      * Update the state of the menu items.
@@ -613,19 +629,43 @@ $(function() {
      */
 	// Define the settings.
     var settings = {
-        'header': {
-            'title': 'Hide the header',
-            'description': 'Hide the default header, creating more screen space.',
-            'set': _.partial(setStyleState, styleHeader),
-            'default': true,
+        'tweaks': {
+            'title': 'Tweaks',
+            'items': {
+                'header': {	
+                    'title': 'Hide the header',
+                    'description': 'Hide the default header, creating more screen space.',
+                    'set': _.partial(setStyleState, styleHeader),
+                    'default': true,
+                },
+                'compact_menu': {
+                    'title': 'Compact menu',
+                    'description': 'Make the default menu buttons more compact.',
+                    'set': _.partial(setStyleState, styleCompactMenu),
+                    'default': true,
+                },
+            },
         },
-        'compact_menu': {
-            'title': 'Compact menu',
-            'description': 'Make the default menu buttons more compact.',
-            'set': _.partial(setStyleState, styleCompactMenu),
-            'default': true,
-        }
+        'menu': {
+            'title': 'Extra menu',
+            'items': {},
+        },
 	}
+    _.each(menuItems, function(menuItem) {
+        var key = $(menuItem).data('cls');
+        var setting = {};
+        setting.title = $(menuItem).data('title');
+        setting.description = 'Show this menu button (function: ' + $(menuItem).data('description') + ')';
+        setting.set = function(state) {
+            if (state) {
+                $(menuItem).show();
+            } else {
+                $(menuItem).hide();
+            }
+        };
+        setting.default = true;
+        settings.menu.items[key] = setting;
+    });
     
     // Build the settings page.
     var settingsContainer = $('<div id="settings-container"></div>');
@@ -636,29 +676,37 @@ $(function() {
 	$('body').append(settingsContainer);
     _.each(_.pairs(settings), function(pair) {
         var key = 'setting-' + pair[0];
-        var settings = pair[1];
+        var group = pair[1];
         
-        // Create the checkbox.
-        var checkbox = $('<input id="' + key + '" type="checkbox" />');
-        $(checkbox).on('change', function() {
-            var value = $(this).is(':checked');
-            GM_setValue(key, value);
-            settings.set(value);
+        // Create a group header.
+        $(settingsDiv).append('<h3>' + group.title + '</h3>');
+        
+        _.each(_.pairs(group.items), function(pair) {
+            var key = 'setting-' + pair[0];
+        	var setting = pair[1];
+        
+            // Create the checkbox.
+            var checkbox = $('<input id="' + key + '" type="checkbox" />');
+            $(checkbox).on('change', function() {
+                var value = $(this).is(':checked');
+                GM_setValue(key, value);
+                setting.set(value);
+            });
+            
+            // Load the setting.
+            var value = GM_getValue(key, setting.default);
+            if (value) {
+                $(checkbox).click();
+            }
+            setting.set(value);
+            
+            // Create the form group.
+            var group = $('<div class="form-group"></div>');
+            $(group).append(checkbox);
+            $(group).append('<label for="' + key + '">' + setting.title + '</label>');
+            $(group).append('<p class="help-block">' + setting.description + '</p>');
+            $(settingsDiv).append(group);
         });
-        
-        // Load the setting.
-        var value = GM_getValue(key, settings.default);
-        if (value) {
-            $(checkbox).click();
-        }
-        settings.set(value);
-        
-        // Create the form group.
-        var group = $('<div class="form-group"></div>');
-        $(group).append(checkbox);
-        $(group).append('<label for="' + key + '">' + settings.title + '</label>');
-        $(group).append('<p class="help-block">' + settings.description + '</p>');
-        $(settingsDiv).append(group);
     });
 
 	// Show/hide the settings container.
