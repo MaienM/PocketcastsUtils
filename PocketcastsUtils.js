@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.6.0
+// @version      1.6.1
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -157,6 +157,7 @@ $(function() {
             padding-right: 0;
         }
         #settings-container {
+        	display: none;
         	position: absolute;
             top: 0;
             left: 0;
