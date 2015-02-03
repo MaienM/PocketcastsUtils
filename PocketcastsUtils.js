@@ -112,9 +112,15 @@ $(function() {
     $('head').append($('<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">'));
     $('head').append($('<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js" type="text/javascript">'));
     
+    function addStyle(content) {
+    	var style = $('<style></style>');
+    	$(style).html(content);
+    	$('head').append(style);
+        return style;
+    }
+    
     // Add some custom tweaks to fix minor issues caused by bootstrap.
-    var style = $('<style></style>');
-    $(style).html(heredoc(function(){/*
+    var styleFixes = addStyle(heredoc(function(){/*
         body {
             font-family: "proxima-nova","Helvetica Neue",Helvetica,Arial,sans-serif;
         }
@@ -124,6 +130,19 @@ $(function() {
         h6.podcast_search {
             margin: 0;
         }
+        .episodes_list h6 {
+            margin: 0;
+        }
+        .stat {
+            float: right;
+            text-align: right;
+            padding: 0 2px;
+        }
+        .stat:first-child {
+            padding-right: 0;
+        }
+    */}));
+    var styleHeader = addStyle(heredoc(function(){/*
        	#header {
         	top: -66px;
         }
@@ -142,25 +161,15 @@ $(function() {
         #main {
         	padding-top: 4px;
         }
+    */}));
+    var styleButtons = addStyle(heredoc(function(){/*
         #content_left .episode_section {
         	height: 41px;
         }
         #content_left .episode_section a {
         	line-height: 41px !important;
         }
-        .episodes_list h6 {
-            margin: 0;
-        }
-        .stat {
-            float: right;
-            text-align: right;
-            padding: 0 2px;
-        }
-        .stat:first-child {
-            padding-right: 0;
-        }
    */}));
-    $('head').append(style);
     
     /**
      * Do nothing.
@@ -372,16 +381,20 @@ $(function() {
         // Playback is over, go to the next episode.
         if (isPlaylistMode && !$('#players').is(':visible')) {
             // Play the next queued episode.
+            var announcement = null;
             if (!isNull(playlistNextEpisode)) {
                 // Prepare an announcement for the episode.
                 var announcement = new SpeechSynthesisUtterance('Next up: ' + playlistNextEpisode.title);
                 
                 // Once the announcement is done, go to the next episode.
                 announcement.onend = _.partial($('#podcast_show').scope().playPause, playlistNextEpisode, playlistPodcastController.podcast);
-                
-                // Start the announcement.
-                speechSynthesis.speak(announcement);
+            } else {
+                // Prepare an announcement for the episode.
+                var announcement = new SpeechSynthesisUtterance('End of queue');
             }
+            
+            // Start the announcement.
+            speechSynthesis.speak(announcement);
             
             // Determine the next episode.
             updateNextEpisode();
