@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.6.4
+// @version      1.6.5
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -433,53 +433,46 @@ $(function() {
     /**
      * Playlist mode.
      */
-    var isPlaylistMode = false
+    var isPlaylistMode = false;
     var playlistPodcastController = null;
-    var playlistNextEpisode = null
     function doPlaylistMode() {
         // Update the status/button.
         isPlaylistMode = !isPlaylistMode;
         updatePage();
             
-        // Determine the next episode.
+        // Store the podcast controller.
         playlistPodcastController = podcastController;
-        updateNextEpisode();
     }
-    function updateNextEpisode() {
+    function getNextEpisode() {
         var lastEpisode = $('#players').scope().mediaPlayer.episode;
-        playlistNextEpisode = playlistPodcastController.episodes[_.indexOf(playlistPodcastController.episodes, lastEpisode) - 1];
+        var lastEpisodeIndex = _.indexOf(playlistPodcastController.episodes, lastEpisode);
+        return playlistPodcastController.episodes[lastEpisodeIndex - 1];
     }
-    var playerObserver = new MutationObserver(function(mutations, observer) {
+    $('audio').on('play', updatePage);
+    $('audio').on('ended', function() {
         // Playback is over, go to the next episode.
-        if (isPlaylistMode && !$('#players').is(':visible')) {
+        if (isPlaylistMode) {
             // Play the next queued episode.
+            var nextEpisode = getNextEpisode();
             var announcement = null;
-            if (!isNull(playlistNextEpisode)) {
+            if (!isNull(nextEpisode)) {
                 // Prepare an announcement for the episode.
-                var announcement = new SpeechSynthesisUtterance('Next up: ' + playlistNextEpisode.title);
+                var announcement = new SpeechSynthesisUtterance('Next up: ' + nextEpisode.title);
                 
                 // Once the announcement is done, go to the next episode.
-                announcement.onend = _.partial($('#podcast_show').scope().playPause, playlistNextEpisode, playlistPodcastController.podcast);
+                announcement.onend = _.partial($('#podcast_show').scope().playPause, nextEpisode, playlistPodcastController.podcast);
             } else {
-                // Prepare an announcement for the episode.
+                // Prepare an announcement for end-of-playlist.
                 var announcement = new SpeechSynthesisUtterance('End of queue');
+                
+                // Stop the playlist mode.
+                isPlaylistMode = false;
+                updatePage();
             }
             
             // Start the announcement.
             speechSynthesis.speak(announcement);
-            
-            // Determine the next episode.
-            updateNextEpisode();
-            if (isNull(playlistNextEpisode)) {
-                isPlaylistMode = false;
-            }
         }
-        
-        // Update the page.
-        updatePage();
-    });
-    playerObserver.observe($('#players')[0], {
-        attributes: true
     });
     
     /**
