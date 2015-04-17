@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.6.6
+// @version      1.6.7
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -201,7 +201,9 @@ $(function() {
             font-size: 2.2em;
             color: red;
             background-color: inherit;
-            width: 2.7em;
+            width: 4em;
+            text-align: right;
+            padding-right: 0.5em;
         }
         #settings .form-group input + label {
             margin-left: 0.5em;
