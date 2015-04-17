@@ -2,12 +2,16 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.6.5
+// @version      1.6.6
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
-// @grant        GM_setValue
+// @grant        GM_info
 // @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_listValues
+// @grant        GM_deleteValue
+// @grant        GM_addValueChangeListener
 // @require      https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js
 // ==/UserScript==
 
@@ -124,7 +128,6 @@ $(function() {
      */
     // Add bootstrap.
     $('head').append($('<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">'));
-    $('head').append($('<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js" type="text/javascript">'));
     
     /**
      * Create a style.
@@ -169,41 +172,63 @@ $(function() {
         .stat:first-child {
             padding-right: 0;
         }
-        #settings-container {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 10;
-        }
         #settings {
-            position: absolute;
             width: 60%;
             height: 80%;
-            top: 10%;
-            left: 20%;
-            background-color: white;
-            overflow-x: hidden;
-            overflow-y: auto;
+            text-align: left;
             padding: 0 2em;
+            overflow-y: scroll;
         }
-        #settings .close {
+        #settings h2 .version {
+            font-size: 75%;
+            margin-left: 1em;
+        }
+        #settings h2 .version:before {
+            content: 'v';
+        }
+        #settings .form-group {
+            padding: 0 0.3em;
+            position: relative;
+        }
+        #settings .form-group.new {
+            background-color: lightgreen;
+        }
+        #settings .form-group.new:after {
+            content: 'New!';
             position: absolute;
-            right: 0;
-            top: 0;
-            padding: 10px;
-            border: 1px solid #333;
-            border-width: 0 0 1px 1px;
-            border-bottom-left-radius: 5px;
+            top: 0.1em;
+            right: 0em;
+            font-size: 2.2em;
+            color: red;
+            background-color: inherit;
+            width: 2.7em;
         }
-        #settings input + label {
+        #settings .form-group input + label {
             margin-left: 0.5em;
         }
-        #settings .help-block {
+        #settings .form-group .help-block {
             margin-top: -3px;
+        }
+        #settings .form-group .version {
+            position: absolute;
+            top: 0.3em;
+            right: 0.2em;
+            width: 6em;
+            text-align: right;
+        }
+    */}));
+    
+    /**
+     * Styling that makes the new settings more subtle.
+     */
+    var styleNewSubtle = addStyle(heredoc(function(){/*
+        #settings .form-group.new {
+            background-color: inherit;
+        }
+        #settings .form-group.new:after {
+            font-size: 1em;
+            top: auto;
+            bottom: 0.1em;
         }
     */}));
     
@@ -211,7 +236,7 @@ $(function() {
      * Styling that hides the header.
      */
     var styleHeader = addStyle(heredoc(function(){/*
-           #header {
+        #header {
             top: -66px;
         }
         #header:hover {
@@ -625,41 +650,91 @@ $(function() {
     /**
      * Settings.
      */
+    // A version 'class'.
+    function Version() {
+        if (arguments.length > 1) {
+            this.parts = arguments;
+        } else if (_.isArray(arguments[0])) {
+            this.parts = arguments[0];
+        } else if (_.isUndefined(arguments[0])) {
+            this.parts = [];
+        } else {
+            this.parts = _.chain((arguments[0] + '').split(',')).map(function(p) { return p.split('.'); }).flatten().map(function(p) { return +p; }).without(NaN).value();
+        }
+    }
+    Version.prototype.toString = function() {
+        // It's a bit of a weird string, but it's comparable, which is it's primary purpose.
+        return _.map(this.parts, function(part) {
+            return ('000' + part).substr(-3);
+        }).toString();
+    }
+    Version.prototype.toUsefulString = function() {
+        return this.parts.toString().replace(/,/g, '.');
+    }
+    
+    // Whether to show the settings page when there is new stuff.
+    isShowOnUpdateEnabled = true;
+    
     // Define the settings.
     var settings = {
-        'tweaks': {
-            'title': 'Tweaks',
-            'description': 'Tweaks on default functionalities/page elements.',
-            'items': {
-                'header': {    
-                    'title': 'Hide the header',
-                    'description': 'Hide the default header, creating more screen space.',
-                    'set': _.partial(setStyleState, styleHeader),
+        self: {
+            title: 'Pocketcast Utils Settings',
+            description: 'Settings that affect the behavior of Pocketcast Utils only.',
+            items: {
+                showOnUpdate: {
+                    title: 'Show on update',
+                    description: 'Show this screen when there are new, exciting features.',
+                    set: function(state) {
+                        isShowOnUpdateEnabled = state;
+                    },
+                    version: [1, 6, 6],
                 },
-                'search': {
-                    'title': 'Episode search',
-                    'description': 'Let the search box also filter the currently loaded episodes\' titles and descriptions.',
-                    'set': function(state) {
+                newSubtle: {
+                    title: 'More subtle new markings',
+                    description: 'Make the markings showing which settings are new more subtle.',
+                    set: _.partial(setStyleState, styleNewSubtle),
+                    version: [1, 6, 6],
+                    default: false,
+                },
+            },
+        },
+        tweaks: {
+            title: 'Tweaks',
+            description: 'Tweaks on default functionalities/page elements.',
+            items: {
+                header: {    
+                    title: 'Hide the header',
+                    description: 'Hide the default header, creating more screen space.',
+                    set: _.partial(setStyleState, styleHeader),
+                    version: [1, 5, 0],
+                    default: false,
+                },
+                search: {
+                    title: 'Episode search',
+                    description: 'Let the search box also filter the currently loaded episodes\' titles and descriptions.',
+                    set: function(state) {
                         isSearchEnabled = state;
                     },
+                    version: [1, 3, 1],
                 },
             },
         },
-        'menu_default': {
-            'title': 'Default menu',
-            'description': 'Tweaks on the default menu.',
-            'items': {
-                'compact_menu': {
-                    'title': 'Compact',
-                    'description': 'Make the default menu buttons more compact.',
-                    'set': _.partial(setStyleState, styleCompactMenu),
+        menu_default: {
+            title: 'Default menu',
+            description: 'Tweaks on the default menu.',
+            items: {
+                compact_menu: {
+                    title: 'Compact',
+                    description: 'Make the default menu buttons more compact.',
+                    set: _.partial(setStyleState, styleCompactMenu),
+                    version: [1, 6, 0],
                 },
             },
         },
-        'menu_extra': {
-            'title': 'Extra menu item.',
-            'description': 'Tweaks on default functionalities/page elements.',
-            'items': {},
+        menu_extra: {
+            title: 'Extra menu',
+            description: 'Tweaks on default functionalities/page elements.',
+            items: {},
         },
     };
     _.each(['Discover', 'New Releases', 'In Progress'], function(name) {
@@ -675,29 +750,67 @@ $(function() {
                 $(menuItem).hide();
             }
         };
+        setting.version = [1, 6, 4];
         settings.menu_default.items[key] = setting;
     });
+    menuItems = [
+        [buttonSaneMode, [1, 0, 0], true],
+        [buttonPlaylistMode, [1, 4, 0], true], 
+        [buttonLoadMore, [0, 2, 0], false],
+        [buttonLoadAll, [0, 2, 0], false],
+        [dropShow, [1, 1, 0], false],
+        [dropOrder, [0, 3, 0], false],
+        [dropStats, [1, 2, 0], true],
+    ];   
     _.each(menuItems, function(menuItem) {
-        var key = $(menuItem).data('cls');
+        var key = $(menuItem[0]).data('cls');
         var setting = {};
-        setting.title = $(menuItem).data('title');
-        setting.description = 'Show this menu button (function: ' + $(menuItem).data('description') + ')';
+        setting.title = $(menuItem[0]).data('title');
+        setting.description = 'Show this menu button (function: ' + $(menuItem[0]).data('description') + ')';
         setting.set = function(state) {
             if (state) {
-                $(menuItem).show();
+                $(menuItem[0]).show();
             } else {
-                $(menuItem).hide();
+                $(menuItem[0]).hide();
             }
         };
+        setting.version = menuItem[1];
+        setting.default = menuItem[2];
         settings.menu_extra.items[key] = setting;
     });
     
+    // Get the previous version.
+    var prevVersion = new Version(GM_getValue('version'));
+    GM_setValue('version', GM_info.script.version);
+    
     // Build the settings page.
-    var settingsContainer = $('<div id="settings-container"></div>');
-    var settingsDiv = $('<div id="settings"><h2>Settings</h2></div>');
-    var settingsCloseButton = $('<span class="close glyphicon glyphicon-remove"></span>');
+    var settingsContainer = $('<div id="settings-container" class="dialog_page"></div>');
+    $(settingsContainer).hide();
+    var settingsDiv = $('<div id="settings" class="dialog_panel"><h2>Pocketcast Utils</h2></div>');
+    $(settingsDiv).find('h2').append('<span class="version">' + GM_info.script.version + '</span>');
+    $(settingsDiv).append(heredoc(function(){/*
+        <p>
+        Pocketcast Utils is a Tampermonkey Script that aims to enhance the default Pocketcast interface and experience. 
+        It does this by both adding new, and streamlining existing functionality and interfaces.
+        </p><p>
+        Of course, this should never result in degrading the overal experience. 
+        Therefore, you can choose to enable or disable any of it's features as you please.
+        These changes take effect immediately; you can see their result in the background.
+        By default, certain options will be enabled/disabled, to showcase the main features without getting in the way and overwhelming you.
+        </p><p>
+        This screen will automatically open when new options are added (unless you don't want it to), and those options will then be highlighted.
+        Additionally, this screen can be found under the cog in the top right corner (which, incidentally, is the only thing you cannot turn off).
+        It's the 'Utils Settings' item from the dropdown menu.
+        </p>
+        <a id="resetSettings">Reset all settings to default</a>
+    */}));
     $(settingsContainer).append(settingsDiv);
-    $(settingsDiv).append(settingsCloseButton);
+    $(settingsDiv).find('#resetSettings').on('click', function() {
+        if (confirm('Are you sure you want to reset all settings to default? There is no way to undo this!')) {
+            _.each(GM_listValues(), GM_deleteValue);
+            GM_setValue('version', GM_info.script.version);
+        }
+    });
     $('body').append(settingsContainer);
     _.each(_.pairs(settings), function(pair) {
         var key = 'setting-' + pair[0];
@@ -709,15 +822,22 @@ $(function() {
         _.each(_.pairs(group.items), function(pair) {
             var key = 'setting-' + pair[0];
             var setting = _.defaults(pair[1], {
-                'default': true,
+                default: true,
             });
         
             // Create the checkbox.
             var checkbox = $('<input id="' + key + '" type="checkbox" />');
             $(checkbox).on('change', function() {
-                var value = $(this).is(':checked');
-                GM_setValue(key, value);
+                GM_setValue(key, $(this).is(':checked'));
+            });
+            
+            // List to changes of the setting.
+            GM_addValueChangeListener(key, function(name, old_value, new_value, remote) {
+                value = GM_getValue(key, setting.default);
                 setting.set(value);
+                if ($(checkbox).is(':checked') != value) {
+                    $(checkbox).click();
+                }
             });
             
             // Load the setting.
@@ -727,21 +847,29 @@ $(function() {
             }
             setting.set(value);
             
+            // Get the version.
+            var version = new Version(setting.version);
+            
             // Create the form group.
             var group = $('<div class="form-group"></div>');
             $(group).append(checkbox);
             $(group).append('<label for="' + key + '">' + setting.title + '</label>');
+            $(group).append('<p class="help-block version">Since v' + version.toUsefulString() + '</label>');
             $(group).append('<p class="help-block">' + setting.description + '</p>');
             $(settingsDiv).append(group);
+            
+            // Mark the block as new, if the setting has been added since your previous version.
+            if (version > prevVersion) {
+                $(group).addClass('new');
+            }
         });
     });
 
     // Show/hide the settings container.
-    $('.settings_cog').on('click', function() {
+    var settingsItem = $('<li><a>Utils Settings</a></li>');
+    $('#header .dropdown-menu .divider').last().after('<li class="divider"></li>').after(settingsItem);
+    $(settingsItem).on('click', function() {
         $(settingsContainer).show();
-    });
-    $(settingsCloseButton).on('click', function() {
-        $(settingsContainer).hide();
     });
     $(settingsContainer).on('click', function() {
         $(settingsContainer).hide();
@@ -749,4 +877,9 @@ $(function() {
     $(settingsDiv).on('click', function(e) {
         e.stopPropagation();
     });
+
+    // If there is anything new, show the settings.
+    if ($(settingsDiv).find('.new').length > 0 && isShowOnUpdateEnabled) {
+        $(settingsContainer).show();
+    }
 });
