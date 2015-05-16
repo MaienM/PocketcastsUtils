@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.6.7
+// @version      1.7.0
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -269,6 +269,109 @@ $(function() {
             line-height: 41px !important;
         }
    */}));
+    
+    /**
+     * Styling that makes the layout menu more compact, and which adds extra layouts.
+     */
+    var styleLayoutMenu = addStyle(heredoc(function(){/*
+        .header > .grid_button,
+        .header > .list_button {
+            display: none;
+        }
+        .podcast_search {
+            padding-right: 40px !important;
+        }
+        .podcast_search .clear_search {
+            right: 46px !important;
+        }
+        #layouts {
+            display: inline-block;
+            position: absolute;
+            top: 14px;
+            right: 12px !important;
+            cursor: pointer;
+        }
+        #layouts-menu {
+            right: 0;
+            left: auto;
+            padding: 3px 5px 5px;
+            min-width: 0;
+            width: 90px;
+        }
+        #layouts-menu .button {
+            display: inline-block;
+            position: relative !important;
+            top: 2px !important;
+            right: auto !important;
+            float: left;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #layouts {
+            width: 16px !important;
+            height: 16px !important;
+            background-size: 16px 16px !important;
+        }
+        #layouts-menu .button {
+            width: 16px !important;
+            height: 16px !important;
+            background-size: 16px 16px !important;
+        }
+        .grid_button {
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wUQFgoGvGJOyAAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAALElEQVQ4y2OcPn36fwYkkJmZycjAwMBArDgTA4Vg4A0YeMA4GgujsTAoDAAAvnYgYi2ICugAAAAASUVORK5CYII=') !important;
+        }            
+        .grid_small_button {
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAYAAAA71pVKAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wUQFgouidfmMgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAJ0lEQVQoz2OcPn36fwYoyMzMZCSFz8RAAaBIM0WAcdTPo34evH4GAH4/OyX5RctnAAAAAElFTkSuQmCC');
+        }
+        .grid_tiny_button {
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wUQFgo75AoC2QAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAJElEQVQoz2OcPn36fwYGBobMzExGUthMDPQGjKNOHXUqfZ0KAFuRXeSPp1AvAAAAAElFTkSuQmCC');
+        }
+        .list_button {
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wUQFg0BbUdNrAAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAALUlEQVQ4y2OcPn36fwYkkJmZycjAwMCALo4LMDFQCAbegIEHjKOxMBoLg8IAAIUyFGKY/zqAAAAAAElFTkSuQmCC') !important;
+        }            
+        .list_small_button {
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAYAAAA71pVKAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wUQFg0bkCW01gAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAKElEQVQoz2OcPn36fwYoyMzMZETmEwJMDBQAijRTBBhH/Tzq58HrZwADDhslrH95HAAAAABJRU5ErkJggg==');
+        }
+        .list_tiny_button {
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wUQFg05RUX1MgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAJUlEQVQoz2OcPn36fwYGBobMzExGGJsYwMRAb8A46tRRp9LXqQAxwyHktYBY7AAAAABJRU5ErkJggg==');
+        }
+        #content_left > .grid.small .podcast {
+            width: 25%;
+        }
+        #content_left > .grid.tiny .podcast {
+            width: 20%;
+        }
+        #content_left > .list.small .podcast img {
+            width: 50px;
+            height: 50px;
+        }
+        #content_left > .list.small .podcast .podcast_text {
+            width: 274px;
+            height: 50px;
+            padding: 8px 10px;
+        }
+        #content_left > .list.small .podcast .podcast_text .title,
+        #content_left > .list.small .podcast .podcast_text .author {
+            width: 238px;
+            line-height: 18px;
+        }
+        #content_left > .list.tiny .podcast img {
+            width: 25px;
+            height: 25px;
+        }
+        #content_left > .list.tiny .podcast .podcast_text {
+            width: 299px;
+            height: 25px;
+            padding: 5px 6px;
+        }
+        #content_left > .list.tiny .podcast .podcast_text .title {
+            width: 238px;
+            line-height: 18px;
+        }
+        #content_left > .list.tiny .podcast .podcast_text .author {
+            display: none;
+        }
+    */}));
     
     /**
      * Do nothing.
@@ -648,6 +751,30 @@ $(function() {
     $('.clear_search').on('click', function() {
         $(searchBox).trigger('change');
     });
+    
+    /**
+     * Layouts.
+     */
+    var layouts = [
+        'grid', 'grid small', 'grid tiny',
+        'list', 'list small', 'list tiny',
+    ];
+    var layoutButton = $('<div id="layouts" class="dropdown-toggle grid_button" data-toggle="dropdown" aria-expanded="false" aria-label="Layouts" title="Layouts"></div>');
+    var layoutMenu = $('<ul id="layouts-menu" class="dropdown-menu" role="menu"></ul>');
+    var podcastList = $('#content_left > .scrollable');
+    $('.podcast_search').after(layoutButton).after(layoutMenu);
+    _.each(layouts, function(layout) {
+        var button = $('<span class="button ' + layout.replace(' ', '_') + '_button" title="' + layout + '"></span>');
+        $(button).on('click', function(e) {
+            $(layoutButton).removeClass(_.map(layouts, function(i) { return i.replace(' ', '_') + '_button'; }).join(' ')).addClass(layout.replace(' ', '_') + '_button');
+            $(podcastList).removeClass(layouts.join(' ')).addClass(layout);
+            e.preventDefault();
+        });
+        if ($(podcastList).hasClass(layout.replace(' ', '_'))) {
+            $(layoutButton).addClass(layout.replace(' ', '_') + '_button');
+        }
+        $(layoutMenu).append(button);
+    });
          
     /**
      * Settings.
@@ -718,6 +845,12 @@ $(function() {
                         isSearchEnabled = state;
                     },
                     version: [1, 3, 1],
+                },
+                layouts: {
+                    title: 'Extra layouts',
+                    description: 'Extra layouts for the podcast list in the sidebar.',
+                    set: _.partial(setStyleState, styleLayoutMenu),
+                    version: [1, 7, 0],
                 },
             },
         },
