@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://gist.github.com/MaienM/e477e0f4e8ec3c1836a7
 // @updateURL    https://gist.githubusercontent.com/MaienM/e477e0f4e8ec3c1836a7/raw/
-// @version      1.7.0
+// @version      1.7.1
 // @description  Some utilities for pocketcasts
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -768,6 +768,7 @@ $(function() {
         $(button).on('click', function(e) {
             $(layoutButton).removeClass(_.map(layouts, function(i) { return i.replace(' ', '_') + '_button'; }).join(' ')).addClass(layout.replace(' ', '_') + '_button');
             $(podcastList).removeClass(layouts.join(' ')).addClass(layout);
+            GM_setValue('layout', layout);
             e.preventDefault();
         });
         if ($(podcastList).hasClass(layout.replace(' ', '_'))) {
@@ -775,6 +776,7 @@ $(function() {
         }
         $(layoutMenu).append(button);
     });
+    $(layoutMenu).find('.' + GM_getValue('layout', '').replace(' ', '_') + '_button').click();       
          
     /**
      * Settings.
