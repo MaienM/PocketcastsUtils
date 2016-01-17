@@ -1,0 +1,11 @@
+/**
+ * Styling that makes the new settings more subtle.
+ */
+#settings .form-group.new {
+    background-color: inherit;
+}
+#settings .form-group.new:after {
+    font-size: 1em;
+    top: auto;
+    bottom: 0.1em;
+}

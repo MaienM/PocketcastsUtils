@@ -1,1 +1,1 @@
-project_path = "src"
+images_path = 'build/images'

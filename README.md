@@ -59,7 +59,8 @@ files into one. Run `grunt watch` to auto-recompile when files are changed.
 ### [1.6.6](https://github.com/MaienM/PocketcastsUtils/releases/tag/v1.6.6) - 2015-04-17
  - Added some general help text/about text to the settings page. Add the settings page to the menu
    that was normally bound to the cog icon, instead of completely overriding this menu (whoops).
-   When the script is updated,
+   When the script is updated, the settings page will now automatically be shown, and the new
+   settings will be highlighted. Of course, this behavior can be turned of with a setting.
 
 ### [1.6.5](https://github.com/MaienM/PocketcastsUtils/releases/tag/v1.6.5) - 2015-02-04
  - Fixed some bugs in the playlist mode, making it work more reliably.

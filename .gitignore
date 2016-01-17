@@ -35,6 +35,4 @@ node_modules
 doc/
 
 # Build
-build/*
-!build/PocketcastsUtils.user.js
-!build/PocketcastsUtils.user.js.map
+build/

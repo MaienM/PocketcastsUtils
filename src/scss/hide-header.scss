@@ -1,0 +1,21 @@
+/**
+ * Styling that hides the header.
+ */
+#header {
+    top: -66px;
+}
+#header:hover {
+    top: 0;
+    -webkit-animation: slidein 1s;
+}
+@-webkit-keyframes slidein {
+    from {
+        top: -66px;
+    }
+    to {
+        top: 0;
+    }
+}
+#main {
+    padding-top: 4px;
+}

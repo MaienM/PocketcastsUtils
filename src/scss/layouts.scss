@@ -1,0 +1,109 @@
+/**
+ * Styling that makes the layout menu more compact, and which adds extra layouts.
+ */
+
+/* Hide the default layout buttons, and resize the search box to fit neatly next to the dropdown button. */
+.header > .grid_button,
+.header > .list_button {
+    display: none;
+}
+.podcast_search {
+    padding-right: 40px !important;
+
+    .clear_search {
+        right: 46px !important;
+    }
+}
+
+/* The menu icon, and the dropdown menu. */
+%icon {
+    width: 16px !important;
+    height: 16px !important;
+    background-size: 16px 16px !important;
+    display: inline-block;
+    cursor: pointer;
+}
+.layouts {
+    @extend %icon;
+    position: absolute;
+    top: 14px;
+    right: 12px !important;
+}
+.layouts-menu {
+    right: 0;
+    left: auto;
+    padding: 3px 5px 5px;
+    min-width: 0;
+    width: 90px;
+
+    .button {
+        @extend %icon;
+        position: relative !important;
+        top: 2px !important;
+        right: auto !important;
+        float: left;
+        margin: 5px;
+    }
+}
+
+/* The dropdown menu icons. */
+.btn-layout.grid {
+    background: inline-image('grid.min.svg');
+}            
+.btn-layout.grid-small {
+    background: inline-image('grid-small.min.svg');
+}
+.btn-layout.grid-tiny {
+    background: inline-image('grid-tiny.min.svg');
+}
+.btn-layout.list {
+    background: inline-image('list.min.svg');
+}            
+.btn-layout.list-small {
+    background: inline-image('list-small.min.svg');
+}
+.btn-layout.list-tiny {
+    background: inline-image('list-tiny.min.svg');
+}
+
+/* The styles for the new layouts. */
+#content_left > .scrollable.grid.small .podcast {
+    width: 25%;
+}
+#content_left > .scrollable.grid.tiny .podcast {
+    width: 20%;
+}
+#content_left > .scrollable.list.small .podcast {
+    img {
+        width: 50px;
+        height: 50px;
+    }
+    .podcast_text {
+        width: 274px;
+        height: 50px;
+        padding: 8px 10px;
+    }
+    .podcast_text .title,
+    .podcast_text .author {
+        width: 238px;
+        line-height: 18px;
+    }
+}
+#content_left > .scrollable.list.tiny .podcast {
+    img {
+        width: 25px;
+        height: 25px;
+    }
+    .podcast_text {
+        width: 299px;
+        height: 25px;
+        padding: 5px 6px;
+    }
+    .podcast_text .title {
+        width: 238px;
+        line-height: 18px;
+    }
+    .podcast_text .author {
+        display: none;
+    }
+}

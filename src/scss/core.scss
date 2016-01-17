@@ -1,0 +1,120 @@
+/**
+ * Some core styles that need to be there no matter what.
+ */
+
+/* Some small tweaks/fixes to unite the default styles and the bootstrap css. */
+body {
+    font-family: "proxima-nova","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+h1 {
+    font-size: 24px;
+}
+h6.podcast_search {
+    margin: 0;
+}
+.episodes_list h6 {
+    margin: 0;
+}
+.modal {
+    z-index: 2000;
+}
+
+/* Stats. */
+.stat {
+    float: right;
+    text-align: right;
+    padding: 0 2px;
+}
+.stat:first-child {
+    padding-right: 0;
+}
+
+/* The left menu. */
+#menu-utils {
+    width: 100%;
+
+    /* Button. */
+    button {
+        span.glyphicon {
+            float: left;
+        }
+        span.caret {
+            float: right;
+            margin-top: 0.5em;
+        }
+    }
+    
+    /* Dropdown. */
+    .btn-group {
+        ul {
+            width: 100%;
+            margin-top: -1px;
+        }
+    }
+
+    /* The stats in the information dropdown. */
+    .stat {
+        float: right;
+        text-align: right;
+        padding: 0 2px;
+
+        &:first-child {
+            padding-right: 0;
+        }
+    }
+}
+
+/* The settings page. */
+#utils-settings {
+    width: 60%;
+    height: 80%;
+    text-align: left;
+    padding: 0 2em;
+    overflow-y: scroll;
+
+    h2 .version {
+        font-size: 75%;
+        margin-left: 1em;
+
+        &:before {
+            content: 'v';
+        }
+    }
+
+    .form-group {
+        padding: 0 0.3em;
+        position: relative;
+
+        &.new {
+            background-color: lightgreen;
+
+            &:after {
+                content: 'New!';
+                position: absolute;
+                top: 0.1em;
+                right: 0em;
+                font-size: 2.2em;
+                color: red;
+                background-color: inherit;
+                width: 4em;
+                text-align: right;
+                padding-right: 0.5em;
+            }
+        }
+
+        input + label {
+            margin-left: 0.5em;
+        }
+        .help-block {
+            margin-top: -3px;
+        }
+        .version {
+            position: absolute;
+            top: 0.3em;
+            right: 0.2em;
+            width: 6em;
+            text-align: right;
+            font-size: 0.9em;
+        }
+    }
+}
