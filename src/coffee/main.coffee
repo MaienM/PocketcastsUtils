@@ -72,27 +72,24 @@ menu.inject()
 
 # Create the menu elements.
 buttonSaneMode = menu.createButton('user', 'Sane mode', 'Load everything, hide watched, order old -> new.', () ->
-    doLoadAll(() ->
-        Interactions.doHide(EpisodeSelector.Watched)
+    Interactions.setOrder(EpisodeOrder.DateOldNew)
+    Interactions.loadAll(() ->
+        Interactions.hideEpisodes(EpisodeSelector.Watched)
     )
 )
 buttonPlaylistMode = menu.createButton('play', 'Playlist mode', 'Auto-play the next episode.', () ->
     playlistController.enabled = !playlistController.enabled
 )
-buttonLoadMore = menu.createButton('tag', 'Load more', 'Load more episodes.', noop)
-buttonLoadAll = menu.createButton('tags', 'Load all', 'Load all episodes.', noop)
+buttonLoadMore = menu.createButton('tag', 'Load more', 'Load more episodes.', Interactions.loadMore)
+buttonLoadAll = menu.createButton('tags', 'Load all', 'Load all episodes.', Interactions.loadAll)
 dropShow = menu.createDropdown('eye-open', 'Show/hide', 'Show/hide episodes', [
-    ['eye-open', 'Show seen episodes', 'Show all seen episodes.', _.partial(Interactions.doShow, EpisodeSelector.Watched)]
-    ['eye-close', 'Hide seen episodes', 'Hide all seen episodes.', _.partial(Interactions.doHide, EpisodeSelector.Watched)]
-])
-dropOrder = menu.createDropdown('sort', 'Order', 'Order episodes.', [
-    ['sort-by-order', 'Order newest -> oldest', 'Order from newest to oldest.', noop]
-    ['sort-by-order-alt', 'Order oldest -> newest', 'Order from oldest to newest.', noop]
+    ['eye-open', 'Show seen episodes', 'Show all seen episodes.', _.partial(Interactions.showEpisodes, EpisodeSelector.Watched)]
+    ['eye-close', 'Hide seen episodes', 'Hide all seen episodes.', _.partial(Interactions.hideEpisodes, EpisodeSelector.Watched)]
 ])
 dropStats = menu.createDropdown('info-sign', 'Information', 'Stats about the current podcast.', [
-    [null, 'Total episodes:' + menu.createEpisodeStats('total'), null, null]
-    [null, 'Watched:' + menu.createEpisodeStats('watched'), null, null]
-    [null, 'Unwatched:' + menu.createEpisodeStats('unwatched'), null, null]
+    [null, menu.createEpisodeStats('Total episodes','total'), null, null]
+    [null, menu.createEpisodeStats('Watched', 'watched'), null, null]
+    [null, menu.createEpisodeStats('Unwatched', 'unwatched'), null, null]
 ])
 
 ###
@@ -101,7 +98,7 @@ Watch the page for changes.
 
 $(pageController).on('change', () ->
     # Set the button states.
-    menu.setState(@page == Page.PODCAST, buttonSaneMode, dropShow, dropOrder, dropStats)
+    menu.setState(@page == Page.PODCAST, buttonSaneMode, dropShow, dropStats)
     menu.setState(@page == Page.PODCAST && !@podcastFullyLoaded, buttonLoadMore, buttonLoadAll)
 
     # Update the playlist button.
@@ -194,7 +191,7 @@ menuItems = [
 ]
 for [name, version] in menuItems
     key = name.toLowerCase().replace(' ', '_')
-    $menuElem = $('.section_' + key)
+    $menuElem = $(".section_#{key}")
     group.addSetting(
         key: key
         title: name
@@ -215,14 +212,13 @@ menuItems = [
     [buttonLoadMore, [0, 2, 0], false]
     [buttonLoadAll, [0, 2, 0], false]
     [dropShow, [1, 1, 0], false]
-    [dropOrder, [0, 3, 0], false]
     [dropStats, [1, 2, 0], true]
 ]   
 for [$element, version, def] in menuItems
     group.addSetting(
         key: $element.data('cls')
         title: $element.data('title')
-        description: 'Show this menu button (function: ' + $element.data('description') + ')'
+        description: "Show this menu button (function: #{$element.data('description')})"
         callback: _.bind(jQuery.fn.toggle, $element)
         version: version
         default: def

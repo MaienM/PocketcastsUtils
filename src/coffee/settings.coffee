@@ -21,30 +21,30 @@ class SettingsController
     elementMenu: undefined
 
     constructor: () ->
-        @element = element = $('
-            <div id="utils-settings-container" class="dialog_page">
-                <div id="utils-settings" class="dialog_panel">
+        @element = element = $("
+            <div id='utils-settings-container' class='dialog_page'>
+                <div id='utils-settings' class='dialog_panel'>
                     <h2>
                         Pocketcast Utils
-                        <span class="version">' + GM_info.script.version + '</span>
+                        <span class='version'>#{GM_info.script.version}</span>
                     </h2>
                     <p>
                         Pocketcast Utils is a Tampermonkey Script that aims to enhance the default Pocketcast interface and experience. 
                         It does this by both adding new, and streamlining existing functionality and interfaces.
                     </p><p>
                         Of course, this should never result in degrading the overal experience. 
-                        Therefore, you can choose to enable or disable any of it\'s features as you please.
+                        Therefore, you can choose to enable or disable any of it's features as you please.
                         These changes take effect immediately; you can see their result in the background.
                         By default, certain options will be enabled/disabled, to showcase the main features without getting in the way and overwhelming you.
                     </p><p>
-                        This screen will automatically open when new options are added (unless you don\'t want it to), and those options will then be highlighted.
+                        This screen will automatically open when new options are added (unless you don't want it to), and those options will then be highlighted.
                         Additionally, this screen can be found under the cog in the top right corner (which, incidentally, is the only thing you cannot turn off).
-                        It\'s the \'Utils Settings\' item from the dropdown menu.
+                        It's the 'Utils Settings' item from the dropdown menu.
                     </p>
-                    <a id="resetSettings">Reset all settings to default</a>
+                    <a id='resetSettings'>Reset all settings to default</a>
                 </div>
             </div>
-        ')
+        ")
         @element.hide()
         @element.on('click', () -> element.hide())
         @elementContent = @element.find('#utils-settings')
@@ -115,21 +115,21 @@ class Setting
     constructor: (@group, options) ->
         {@key, @title, @description, @version, @callback, @default} = options
         @default = true unless @default?
-        @key = key = 'setting-' + @key
+        @key = key = "setting-#{@key}"
         @version = new Version(@version)
 
         # Create the div.
         @element = $('<div class="form-group"></div>')
 
         # Create the checkbox.
-        @elementCheckbox = $('<input id="' + @key + '" type="checkbox" />')
+        @elementCheckbox = $("<input id='#{@key}' type='checkbox' />")
         @elementCheckbox.on('change', () -> GM_setValue(key, $(this).is(':checked')))
 
         # Create the form group.
         @element.append(@elementCheckbox)
-        @element.append('<label for="' + @key + '">' + @title + '</label>')
-        @element.append('<p class="help-block version">Since v' + @version.toUsefulString() + '</label>')
-        @element.append('<p class="help-block">' + @description + '</p>')
+        @element.append("<label for='#{@key}'>#{@title}</label>")
+        @element.append("<p class='help-block version'>Since v#{@version.toUsefulString()}</label>")
+        @element.append("<p class='help-block'>#{@description}</p>")
 
         # Mark the block as new, if the setting has been added since your previous version.
         @element.addClass('new') if @version > @group.manager.prevVersion

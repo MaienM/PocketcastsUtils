@@ -53,8 +53,8 @@ class Menu
         $(btn).dropdown()
 
         # Setup the button icon.
-        $(icon).addClass('glyphicon-' + cls)
-        $(icon).after(' ' + title + ' ')
+        $(icon).addClass("glyphicon-#{cls}")
+        $(icon).after(" #{title} ")
 
         # Create and add all child items.
         $(menu).append(@createDropdownItem(item...) for item in items)
@@ -108,19 +108,19 @@ class Menu
     # @return [Element] The new stat block.
     createStat: (name, width) ->
         width = 'auto' unless width?
-        return $('<stat id="stat-' + name + '" class="stat" style="width: ' + width + ';"></stat>')
+        return $("<span id='stat-#{name}' class='stat' style='width: #{width};'></span>")
 
     # Create a stat block for episode statistics.
     #
     # This is just a convenience function that creates two regular stat blocks
     # with specific names and widths, and combines them.
     #
-    # @param name   [String]   Used to create the ID of the blocks, in the form
-    #   of stat-{name}-count and stat-name-time.
-    # @param width  [String]   The width of the stat block. Default = auto.
+    # @param title  [String]   The human-readable title/text to display before the stat blocks
+    # @param name   [String]   Used to create the ID of the blocks, in the form of stat-{name}-count and
+    #   stat-name-time.
     # @return       [Element]  The new stat block.
-    createEpisodeStats: (name) ->
-        return @createStat(name + '-count', '40px').after(@createStat(name + '-time'))
+    createEpisodeStats: (title, name) ->
+        return [title, @createStat("#{name}-time"), @createStat("#{name}-count", '40px')]
 
     # Set the state of a button.
     #
@@ -135,7 +135,7 @@ class Menu
         if cls?
             icon = $(btn).find('.glyphicon')
             $(icon).attr('class', 'glyphicon')
-            $(icon).addClass('glyphicon-' + cls)
+            $(icon).addClass("glyphicon-#{cls}")
             $(btn).data('cls', cls)
 
         # Set the title.
@@ -154,7 +154,7 @@ class Menu
         if callback?
             $(btn).on('click', (e) ->
                 e.preventDefault()
-                doCallback(callback)
+                Utils.doCallback(callback)
             )
             $(btn).data('callback', callback)
 
@@ -179,6 +179,6 @@ class Menu
     # @param episodes
     setEpisodeStats: (name, episodes) ->
         time = new Time($(episodes))
-        $('#stat-' + name + '-count').text($(episodes).length)
-        $('#stat-' + name + '-time').text(time.formatShort(time))
-        $('#stat-' + name + '-time').attr('title', time.formatFull(time))
+        $("#stat-#{name}-count").text($(episodes).length)
+        $("#stat-#{name}-time").text(time.formatShort())
+        $("#stat-#{name}-time").attr('title', time.formatLong())

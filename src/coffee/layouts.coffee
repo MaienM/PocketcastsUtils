@@ -63,4 +63,5 @@ class LayoutController
 
     # (Re)load the settings.
     reload: () ->
-        @elementMenu.find('span.btn-layout.' + @layouts[GM_getValue('layout', _.keys(@layouts)[0])]).click()
+        layout = @layouts[GM_getValue('layout', _.keys(@layouts)[0])]
+        @elementMenu.find("span.btn-layout.#{layout}").click()

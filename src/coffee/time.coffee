@@ -23,9 +23,8 @@ class Time
     #
     # @param elems  [Array]    A (selector for a) list of jQuery objects for episodes.
     constructor: (elems) ->
-        durations = ($(elem).scope().episode.duration for elem in elems)
-        sum = (a, b) -> a + b
-        @seconds = _.reduce(durations, sum, 0)
+        @seconds = 0
+        @seconds += parseInt($(elem).scope().episode.duration) for elem in elems
 
     # Format the time into a short format: HH:MM.
     #
@@ -33,12 +32,12 @@ class Time
     formatShort: () ->
         hours = Math.floor(@seconds / Time.TIME_HOUR)
         minutes = Math.floor((@seconds % Time.TIME_HOUR) / Time.TIME_MINUTE)
-        return hours + ':' + (if minutes < 10 then '0' else '') + minutes
+        return "#{hours}:#{Utils.padLeft(minutes, 2, '0')}"
 
     # Format the time into a long format: W weeks, D days, H hours, M minutes, S seconds.
     #
     # @return         [String]   A string representing the time.
-    formatFull: () ->
+    formatLong: () ->
         # Split the number into weeks, days, hours, minutes and seconds.
         weeks = Math.floor(@seconds / Time.TIME_WEEK)
         days = Math.floor((@seconds % Time.TIME_WEEK) / Time.TIME_DAY)
@@ -48,7 +47,8 @@ class Time
 
         # Format a string for each of these parts.
         part = (num, text) ->
-            return (num + ' ' + text + ('s' if num > 1)) if num > 0
+            return "#{num} #{text}" if num == 1
+            return "#{num} #{text}s" if num > 2
         parts = [
             part(weeks, 'week'),
             part(days, 'day'),

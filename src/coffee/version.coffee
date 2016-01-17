@@ -27,10 +27,8 @@ class Version
     #
     # It's a bit of a weird string, but it's comparable, which is it's primary purpose.
     toString: () ->
-        return _.map(@parts, (part) ->
-            return ('000' + part).substr(-3);
-        ).toString();
+        return _.map(@parts, _.partial(Utils.padLeft, _, 3, '0')).toString()
 
     # Convert the version to a human readable string.
     toUsefulString: () ->
-        return @parts.toString().replace(/,/g, '.');
+        return @parts.toString().replace(/,/g, '.')

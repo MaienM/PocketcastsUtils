@@ -43,7 +43,7 @@ class PlaylistController
             # Once the announcement is done, go to the next episode.
             announcement.onend = () ->
                 $('#podcast_show').scope().playPause(nextEpisode, @pageController.episodePodcastScope.podcast)
-                doCallback(callback)
+                Utils.doCallback(callback)
         else
             # Prepare an announcement for end-of-playlist.
             announcement = new SpeechSynthesisUtterance('End of queue')
