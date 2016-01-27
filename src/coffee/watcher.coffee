@@ -106,20 +106,6 @@ class PageController
     #
     # Once the status has been updated, a 'change' event will be raised.
     rescan: () ->
-        snapshotState = () ->
-            return _.pick(this, [
-                'page',
-                'playerEpisodeData',
-                'playerEpisodePodcastData',
-                'playerEpisodePodcastScope',
-                'playerScope',
-                'podcastFullyLoaded',
-                'podcastScope'
-            ])
-
-        # Store the start state
-        oldState = snapshotState()
-
         # Determine the current podcast.
         @podcastScope = $('#podcast_show').scope()
 
@@ -146,7 +132,7 @@ class PageController
         @podcastFullyLoaded = @podcastScope.episodes.length == @podcastScope.episodesTotal if @podcastScope?
 
         # Fire off the event, if anything changed
-        $(this).trigger('change', this) unless _.isEqual(oldState, snapshotState())
+        $(this).trigger('change', this)
 
     # Hide all elements from the given list/matching the given selector, except for
     # the last one.

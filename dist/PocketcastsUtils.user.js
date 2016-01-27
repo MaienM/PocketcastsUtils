@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://github.com/MaienM/PocketcastUtils
 // @updateURL    http://waxd.nl/PocketcastsUtils.user.js
-// @version      2.0.0-beta20162701152651950
+// @version      2.0.0-beta20162701153704634
 // @description  Enhance your Pocketcast experience with extra interface options, filters and other functionality
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -493,11 +493,6 @@
     };
 
     PageController.prototype.rescan = function() {
-      var oldState, snapshotState;
-      snapshotState = function() {
-        return _.pick(this, ['page', 'playerEpisodeData', 'playerEpisodePodcastData', 'playerEpisodePodcastScope', 'playerScope', 'podcastFullyLoaded', 'podcastScope']);
-      };
-      oldState = snapshotState();
       this.podcastScope = $('#podcast_show').scope();
       this.page = (function() {
         switch (false) {
@@ -528,9 +523,7 @@
       if (this.podcastScope != null) {
         this.podcastFullyLoaded = this.podcastScope.episodes.length === this.podcastScope.episodesTotal;
       }
-      if (!_.isEqual(oldState, snapshotState())) {
-        return $(this).trigger('change', this);
-      }
+      return $(this).trigger('change', this);
     };
 
     PageController.prototype.hideEpisodes = function(elems) {
