@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://github.com/MaienM/PocketcastUtils
 // @updateURL    http://waxd.nl/PocketcastsUtils.user.js
-// @version      2.0.0-beta<%= grunt.template.today('yyyyddmmHHMMssl') %>
+// @version      2.0.0
 // @description  Enhance your Pocketcast experience with extra interface options, filters and other functionality
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
