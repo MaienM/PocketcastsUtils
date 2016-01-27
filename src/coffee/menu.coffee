@@ -168,7 +168,13 @@ class Menu
     # @param state     [Boolean]  The new state of the buttons, true for enabled, false for disabled.
     # @parsm elems...  [Element]  The element(s) to be updated.
     setState: (state, elems...) ->
-        btns = $(elems).find('button').addBack().filter('button')
+        # Get all (nested) buttons
+        btns = $()
+        for elem in elems
+            btns = btns.add(elem)
+        btns = btns.find('button').addBack().filter('button')
+
+        # Set the state
         if state
             $(btns).removeClass('disabled')
         else

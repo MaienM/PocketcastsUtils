@@ -2,7 +2,7 @@
 // @name         Pocketcasts Utils
 // @namespace    https://github.com/MaienM/PocketcastUtils
 // @updateURL    http://waxd.nl/PocketcastsUtils.user.js
-// @version      2.0.0-beta20162701153704634
+// @version      2.0.0-beta20162701154740581
 // @description  Enhance your Pocketcast experience with extra interface options, filters and other functionality
 // @author       MaienM
 // @match        https://play.pocketcasts.com/*
@@ -352,9 +352,14 @@
     };
 
     Menu.prototype.setState = function() {
-      var btns, elems, state;
+      var btns, elem, elems, state, _i, _len;
       state = arguments[0], elems = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      btns = $(elems).find('button').addBack().filter('button');
+      btns = $();
+      for (_i = 0, _len = elems.length; _i < _len; _i++) {
+        elem = elems[_i];
+        btns = btns.add(elem);
+      }
+      btns = btns.find('button').addBack().filter('button');
       if (state) {
         return $(btns).removeClass('disabled');
       } else {
