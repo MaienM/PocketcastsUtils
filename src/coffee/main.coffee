@@ -2,7 +2,6 @@ include_once('style')
 include_once('search')
 include_once('layouts')
 include_once('menu')
-include_once('interactions')
 include_once('playlist')
 include_once('watcher')
 include_once('settings')
@@ -55,6 +54,7 @@ Page controller that other things can hook into.
 
 pageController = new PageController()
 pageController.inject()
+$('body').data('pageController', pageController)
 
 ###
 Playlist controller.
@@ -67,24 +67,24 @@ playlistController.inject()
 Create the menu.
 ###
 
-menu = new Menu()
+menu = new Menu(pageController)
 menu.inject()
 
 # Create the menu elements.
 buttonSaneMode = menu.createButton('user', 'Sane mode', 'Load everything, hide watched, order old -> new.', () ->
-    Interactions.setOrder(EpisodeOrder.DateOldNew)
-    Interactions.loadAll(() ->
-        Interactions.hideEpisodes(EpisodeSelector.Watched)
+    pageController.setOrder(EpisodeOrder.DateOldNew)
+    pageController.loadAll(() ->
+        pageController.hideEpisodes(EpisodeSelector.Watched)
     )
 )
 buttonPlaylistMode = menu.createButton('play', 'Playlist mode', 'Auto-play the next episode.', () ->
     playlistController.enabled = !playlistController.enabled
 )
-buttonLoadMore = menu.createButton('tag', 'Load more', 'Load more episodes.', Interactions.loadMore)
-buttonLoadAll = menu.createButton('tags', 'Load all', 'Load all episodes.', Interactions.loadAll)
+buttonLoadMore = menu.createButton('tag', 'Load more', 'Load more episodes.', pageController.loadMore)
+buttonLoadAll = menu.createButton('tags', 'Load all', 'Load all episodes.', pageController.loadAll)
 dropShow = menu.createDropdown('eye-open', 'Show/hide', 'Show/hide episodes', [
-    ['eye-open', 'Show seen episodes', 'Show all seen episodes.', _.partial(Interactions.showEpisodes, EpisodeSelector.Watched)]
-    ['eye-close', 'Hide seen episodes', 'Hide all seen episodes.', _.partial(Interactions.hideEpisodes, EpisodeSelector.Watched)]
+    ['eye-open', 'Show seen episodes', 'Show all seen episodes.', _.partial(pageController.showEpisodes, EpisodeSelector.Watched)]
+    ['eye-close', 'Hide seen episodes', 'Hide all seen episodes.', _.partial(pageController.hideEpisodes, EpisodeSelector.Watched)]
 ])
 dropStats = menu.createDropdown('info-sign', 'Information', 'Stats about the current podcast.', [
     [null, menu.createEpisodeStats('Total episodes','total'), null, null]

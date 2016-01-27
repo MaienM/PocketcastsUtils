@@ -25,6 +25,28 @@ Page =
     # Unknown page. Should never happen, but hey, future proof/defensive programming!
     UNKNOWN: 6
 
+# The episode categories to select.
+EpisodeSelector =
+    # jQuery selector matching all episodes.
+    All: '.episode_row'
+
+    # jQuery selector matching all unwatched episodes. 0 is unwatched, 1 is marked as unwatched.
+    Unwatched: '.played_status_0, .played_status_1'
+
+    # jQuery selector matching all episodes that are in progress.
+    Partial: '.played_status_2'
+
+    # jQuery selector matching all watched episodes. 3 is watched, 4 is marked as watched.
+    Watched: '.played_status_3, .played_status_4'
+
+# The episode orders.
+EpisodeOrder =
+    # Constant for date new -> old ordering.
+    DateNewOld: 'DATE_NEW_OLD'
+
+    # Constant for date old -> new ordering.
+    DateOldNew: 'DATE_OLD_NEW'
+
 # Interaction layer between us and the page.
 #
 # This class is responsible for keeping track of the state of the Pocketcasts page, and for us manipulating the page.
@@ -41,11 +63,11 @@ class PageController
     # The podcast scope, if any.
     podcastScope: null
 
-    # The current episode, if any.
-    episodeScope: null
+    # The player episode, if any.
+    playerEpisodeData: null
 
-    # The current episode's podcast scope, if any.
-    episodePodcastScope: null
+    # The player episode's podcast scope, if any.
+    playerEpisodePodcastData: null
 
     # The current page.
     page: Page.UNKNOWN
@@ -73,18 +95,32 @@ class PageController
             pageObserver.observe($('#content_middle')[0], {
                 subtree: true
                 childList: true
+                attributes: true
             })
         else
-            $('#main').$watch(rescan)
+            $(@mainScope).$watch(rescan)
 
     # Update the state by re-observing the page.
     #
-    # There should be no need to call this manually, as changes to the page should automatically trigger @
+    # There should be no need to call this manually, as changes to the page should automatically trigger
     #
     # Once the status has been updated, a 'change' event will be raised.
     rescan: () ->
+        snapshotState = () ->
+            return _.pick(this, [
+                'page',
+                'playerEpisodeData',
+                'playerEpisodePodcastData',
+                'playerEpisodePodcastScope',
+                'playerScope',
+                'podcastFullyLoaded',
+                'podcastScope'
+            ])
+
+        # Store the start state
+        oldState = snapshotState()
+
         # Determine the current podcast.
-        prevPodcastScope = @podcastScope
         @podcastScope = $('#podcast_show').scope()
 
         # Determine the current page.
@@ -97,12 +133,84 @@ class PageController
             else Page.UNKNOWN
 
         # Determine the current episode state.
-        @episodeScope = @playerScope.mediaPlayer.episode
-        @episodePodcastScope = @playerScope.mediaPlayer.podcast
+        @playerEpisodeData = @playerScope.mediaPlayer.episode
+        @playerEpisodePodcastData = @playerScope.mediaPlayer.podcast
+        if @playerEpisodePodcastData?
+            if @podcastScope.podcast.uuid == @playerEpisodePodcastData.uuid
+                @playerEpisodePodcastScope = @podcastScope
+        else
+            @playerEpisodePodcastScope = null
 
         # Determine the current podcast page state.
         @podcastFullyLoaded = undefined
         @podcastFullyLoaded = @podcastScope.episodes.length == @podcastScope.episodesTotal if @podcastScope?
 
-        # Fire off the event.
-        $(this).trigger('change', this)
+        # Fire off the event, if anything changed
+        $(this).trigger('change', this) unless _.isEqual(oldState, snapshotState())
+
+    # Hide all elements from the given list/matching the given selector, except for
+    # the last one.
+    #
+    # @param elems The elements/selector to hide.
+    hideEpisodes: (elems) ->
+        $(elems).hide()
+        $(elems).last().show()
+
+    # Show all elements from the given list/matching the given selector.
+    #
+    # @param elems The elements/selector to show.
+    showEpisodes: (elems) ->
+        $(elems).show()
+
+    # Load more episodes for the current podcast.
+    #
+    # @param callback  [Function]  The function that will be called once more episodes have been loaded.
+    # @return          [Element]   Whether more episodes are being loaded.
+    loadMore: (callback) ->
+        # If there are no more episodes to load, return false and do nothing.
+        return false if @podcastFullyLoaded
+
+        # Listen to changes to determine when the loading is done.
+        currentlyLoaded = @podcastScope.episodes.length
+        listener = () ->
+            if @podcastScope.episodes.length > currentlyLoaded
+                $(this).unbind(listener)
+            Utils.doCallback(callback)
+        $(this).bind('change', listener)
+
+        # Start loading more.
+        @podcastScope.showMoreEpisodes()
+
+        # Return true to indicate something is happening.
+        return true
+
+    # Load all episodes for the current podcast.
+    #
+    # @param callback  [Function]  The function that will be called once all episodes have been loaded.
+    loadAll: (callback) ->
+        # Just keep calling loadMore until it fails, at which point the callback should be invoked
+        innerCallback = () -> 
+            return if @loadMore(innerCallback)
+            Utils.doCallback(callback)
+        @loadMore(innerCallback)
+
+    # Load the shownotes for all loaded episodes.
+    loadAllShowNotes: () ->
+        for episode in @podcastScope.episodes
+            EpisodeHelper.loadShowNotes($, episode) if episode?
+
+    # Get the order of the episodes list.
+    #
+    # @return [Orders]  The current order of the episode list.
+    getOrder: () ->
+        # Unfortunately, the only method to determine the current order is by the displayed text
+        text = $('.episodes_sort_value').text()
+        return EpisodeOrder.DateNewOld if text.indexOf('▼') >= 0
+        return EpisodeOrder.DateOldNew
+
+    # Set the order of the episodes list.
+    #
+    # @param order  [Orders]  The new order of the episode list.
+    setOrder: (order) ->
+        if order != @getOrder()
+            @podcastScope.changeSortOrder()

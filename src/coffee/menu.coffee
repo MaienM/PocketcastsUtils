@@ -20,7 +20,7 @@ class Menu
     inject: () ->
         $('div.header').after(@element)
 
-    constructor: () ->
+    constructor: (@pageController) ->
         @element = $('<div id="menu-utils" class="btn-group-vertical"></div>')
 
     # Create a button with a dropdown menu.
@@ -152,9 +152,11 @@ class Menu
 
         # Set the callback.
         if callback?
+            pageController = @pageController
             $(btn).on('click', (e) ->
                 e.preventDefault()
                 Utils.doCallback(callback)
+                pageController.rescan()
             )
             $(btn).data('callback', callback)
 

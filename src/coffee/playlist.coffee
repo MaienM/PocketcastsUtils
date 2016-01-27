@@ -24,7 +24,7 @@ class PlaylistController
     # Attach to the page.
     inject: () ->
         # Bind to events.
-        $('audio').on('ended', @startNextEpisode)
+        $('audio, video').on('ended', _.bind(@startNextEpisode, this))
 
     # Start the next episode.
     #
@@ -35,22 +35,25 @@ class PlaylistController
 
         # Determine what should happen/the announcement.
         nextEpisode = @getNextEpisode()
-        announcement = null
+        podcast = @pageController.playerEpisodePodcastData
+        pageController = @pageController
+        announcement = new SpeechSynthesisUtterance("Next up: #{nextEpisode.title}")
+        announcement.lang = 'en-US';
         if nextEpisode?
             # Prepare an announcement for the episode.
-            announcement = new SpeechSynthesisUtterance("Next up: #{nextEpisode.title}")
+            announcement.text = "Next up: #{nextEpisode.title}"
 
             # Once the announcement is done, go to the next episode.
             announcement.onend = () ->
-                $('#podcast_show').scope().playPause(nextEpisode, @pageController.episodePodcastScope.podcast)
+                pageController.podcastScope.playPause(nextEpisode, podcast)
                 Utils.doCallback(callback)
         else
             # Prepare an announcement for end-of-playlist.
-            announcement = new SpeechSynthesisUtterance('End of queue')
+            announcement.text = 'End of queue'
 
             # Stop the playlist mode.
             isPlaylistMode = false
-            @pageController.rescan()
+            pageController.rescan()
 
         # Start the announcement.
         if @announcements
@@ -63,7 +66,8 @@ class PlaylistController
     # @private
     # @return [EpisodeScope] The next episode.
     getNextEpisode: () ->
-        episodes = @pageController.episodePodcastScope.episodes
-        lastEpisode = @pageController.episodeScope
+        episodes = @pageController.playerEpisodePodcastScope.episodes
+        episodes = _.sortBy(episodes, 'published_at')
+        lastEpisode = @pageController.playerEpisodeData
         lastEpisodeIndex = _.indexOf(episodes, lastEpisode)
-        return episodes[lastEpisodeIndex - 1]
+        return episodes[lastEpisodeIndex + 1]
